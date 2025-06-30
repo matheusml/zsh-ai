@@ -14,8 +14,15 @@ _zsh_ai_query() {
             return 1
         fi
         _zsh_ai_query_ollama "$query"
-    else
+    elif [[ "$ZSH_AI_PROVIDER" == "groq" ]]; then
+        _zsh_ai_query_groq "$query"
+    elif [[ "$ZSH_AI_PROVIDER" == "anthropic" ]]; then
         _zsh_ai_query_anthropic "$query"
+    elif [[ "$ZSH_AI_PROVIDER" == "gemini" ]]; then
+        _zsh_ai_query_gemini "$query"
+    else
+        echo "Error: Unsupported provider: $ZSH_AI_PROVIDER"
+        return 1
     fi
 }
 
