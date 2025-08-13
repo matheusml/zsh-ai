@@ -19,7 +19,7 @@ _zsh_ai_query_openai() {
     "messages": [
         {
             "role": "system",
-            "content": "You are a helpful assistant that generates shell commands. When given a natural language description, respond ONLY with the appropriate shell command. Do not include any explanation, markdown formatting, or backticks. Just the raw command.\n\nContext:\n$escaped_context"
+            "content": "You are a zsh command generator. Generate syntactically correct zsh commands based on the user's natural language request.\n\nIMPORTANT RULES:\n1. Output ONLY the raw command - no explanations, no markdown, no backticks\n2. For arguments containing spaces or special characters (!,\$,\`,\\,\",'), use single quotes\n3. Inside single quotes, escape only the single quote character by ending the quote, adding \\\', and starting a new quote\n4. Use double quotes only when variable expansion is needed\n5. Inside double quotes, escape these characters: \$ \` \\ \"\n6. For complex strings with both variables and special characters, combine quoting methods\n\nExamples:\n- echo 'Hello World!' (spaces require quotes)\n- echo 'It'\\''s working!' (single quote inside single quotes)\n- echo \"Current user: \$USER\" (variable expansion needs double quotes)\n- grep 'pattern with spaces' file.txt\n\nContext:\n$escaped_context"
         },
         {
             "role": "user",

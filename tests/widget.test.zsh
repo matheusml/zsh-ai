@@ -358,7 +358,7 @@ test_handles_commands_with_special_characters() {
     
     # Mock the query function
     _zsh_ai_query() {
-        echo "echo \"Hello, World!\""
+        echo "echo 'Hello, World!'"
     }
     
     # Mock kill to simulate process completion
@@ -368,7 +368,7 @@ test_handles_commands_with_special_characters() {
     mktemp() {
         echo "/tmp/test.tmp"
     }
-    mock_command "cat" "echo \"Hello, World!\"" 0
+    mock_command "cat" "echo 'Hello, World!'" 0
     mock_command "rm" "" 0
     
     # Mock ZLE functions
@@ -383,7 +383,7 @@ test_handles_commands_with_special_characters() {
     
     _zsh_ai_accept_line
     
-    assert_equals "$BUFFER" "echo \"Hello, World!\""
+    assert_equals "$BUFFER" "echo 'Hello, World!'"
     
     teardown_test_env
 }
