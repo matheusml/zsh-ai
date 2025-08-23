@@ -33,7 +33,7 @@ EOF
 )
     
     # Call the API
-    response=$(curl -s https://api.openai.com/v1/chat/completions \
+    response=$(curl -s ${ZSH_AI_OPENAI_URL:-https://api.openai.com}/v1/chat/completions \
         --header "Authorization: Bearer $OPENAI_API_KEY" \
         --header "content-type: application/json" \
         --data "$json_payload" 2>&1)
