@@ -9,6 +9,7 @@
 : ${ZSH_AI_GEMINI_MODEL:="gemini-2.5-flash"}  # Fast Gemini 2.5 model
 : ${ZSH_AI_OPENAI_MODEL:="gpt-4o"}  # Default to GPT-4o
 : ${ZSH_AI_ANTHROPIC_MODEL:="claude-3-5-sonnet-20241022"}  # Default Anthropic model
+: ${ZSH_AI_SYSTEM_PROMPT:=""}  # Custom system prompt (empty means use default)
 
 # Provider validation
 _zsh_ai_validate_config() {

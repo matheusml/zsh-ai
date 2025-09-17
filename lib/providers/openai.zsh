@@ -11,6 +11,10 @@ _zsh_ai_query_openai() {
     local context=$(_zsh_ai_build_context)
     local escaped_context=$(_zsh_ai_escape_json "$context")
     
+    # Get system prompt and escape it
+    local system_prompt=$(_zsh_ai_get_system_prompt)
+    local escaped_system_prompt=$(_zsh_ai_escape_json "$system_prompt")
+    
     # Prepare the JSON payload - escape quotes in the query
     local escaped_query=$(_zsh_ai_escape_json "$query")
     local json_payload=$(cat <<EOF
@@ -19,7 +23,7 @@ _zsh_ai_query_openai() {
     "messages": [
         {
             "role": "system",
-            "content": "You are a zsh command generator. Generate syntactically correct zsh commands based on the user's natural language request.\n\nIMPORTANT RULES:\n1. Output ONLY the raw command - no explanations, no markdown, no backticks\n2. For arguments containing spaces or special characters, use single quotes\n3. Use double quotes only when variable expansion is needed\n4. Properly escape special characters within quotes\n\nExamples:\n- echo 'Hello World!' (spaces require quotes)\n- echo \"Current user: \$USER\" (variable expansion needs double quotes)\n- grep 'pattern with spaces' file.txt\n- find . -name '*.txt' (glob patterns in quotes)\n\nContext:\n$escaped_context"
+            "content": "$escaped_system_prompt\n\nContext:\n$escaped_context"
         },
         {
             "role": "user",

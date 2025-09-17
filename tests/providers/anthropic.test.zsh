@@ -5,6 +5,7 @@ source "${0:A:h:h}/test_helper.zsh"
 
 # Load the context and anthropic provider modules
 source "$PLUGIN_DIR/lib/utils.zsh"
+source "$PLUGIN_DIR/lib/prompts.zsh"
 source "$PLUGIN_DIR/lib/context.zsh"
 source "$PLUGIN_DIR/lib/providers/anthropic.zsh"
 

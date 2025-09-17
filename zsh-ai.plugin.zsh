@@ -8,6 +8,7 @@ local plugin_dir="${0:A:h}"
 
 # Source all the module files
 source "${plugin_dir}/lib/config.zsh"
+source "${plugin_dir}/lib/prompts.zsh"
 source "${plugin_dir}/lib/context.zsh"
 source "${plugin_dir}/lib/providers/anthropic.zsh"
 source "${plugin_dir}/lib/providers/ollama.zsh"

@@ -5,6 +5,7 @@
 # Source test helper and the files we're testing
 source "${0:A:h}/../test_helper.zsh"
 source "${PLUGIN_DIR}/lib/config.zsh"
+source "${PLUGIN_DIR}/lib/prompts.zsh"
 source "${PLUGIN_DIR}/lib/context.zsh"
 source "${PLUGIN_DIR}/lib/providers/openai.zsh"
 source "${PLUGIN_DIR}/lib/utils.zsh"

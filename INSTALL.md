@@ -125,6 +125,32 @@ export ZSH_AI_OPENAI_MODEL="gpt-4o"  # (default)
 # Ollama-specific settings 
 export ZSH_AI_OLLAMA_MODEL="llama3.2"  # (default)
 export ZSH_AI_OLLAMA_URL="http://localhost:11434"  # (default)
+
+# Custom system prompt (optional)
+# Override the default system prompt with your own
+export ZSH_AI_SYSTEM_PROMPT="You are a command line assistant that generates zsh commands. Always output only the raw command without explanations."
 ```
 
 **That's it!** Most users won't need to change anything.
+
+### Advanced Configuration
+
+#### Custom System Prompt
+
+You can customize the system prompt to change how the AI generates commands. This is useful for:
+- Adding specific rules for your workflow
+- Changing the output format
+- Adding context about your environment
+
+```bash
+# Example: More verbose explanations
+export ZSH_AI_SYSTEM_PROMPT="Generate zsh commands with brief inline comments explaining what they do."
+
+# Example: Security-focused
+export ZSH_AI_SYSTEM_PROMPT="Generate secure zsh commands. Always validate input, avoid rm -rf, and use safe defaults."
+
+# Example: Specific to your stack
+export ZSH_AI_SYSTEM_PROMPT="Generate zsh commands for a Node.js development environment. Prefer npm/yarn commands when applicable."
+```
+
+Note: The default prompt is optimized for generating clean, executable commands. Only customize if you have specific needs.
