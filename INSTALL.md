@@ -127,30 +127,35 @@ export ZSH_AI_OLLAMA_MODEL="llama3.2"  # (default)
 export ZSH_AI_OLLAMA_URL="http://localhost:11434"  # (default)
 
 # Custom system prompt (optional)
-# Override the default system prompt with your own
-export ZSH_AI_SYSTEM_PROMPT="You are a command line assistant that generates zsh commands. Always output only the raw command without explanations."
+# Add additional instructions to the AI without replacing core functionality
+export ZSH_AI_SYSTEM_PROMPT="Prefer using ripgrep (rg) over grep when searching"
 ```
 
 **That's it!** Most users won't need to change anything.
 
 ### Advanced Configuration
 
-#### Custom System Prompt
+#### Custom System Prompt Extensions
 
-You can customize the system prompt to change how the AI generates commands. This is useful for:
-- Adding specific rules for your workflow
-- Changing the output format
-- Adding context about your environment
+You can extend the system prompt with additional instructions while maintaining core functionality. Your custom instructions are appended to the default prompt, ensuring the AI always knows to output clean, executable commands.
+
+This is useful for:
+- Adding preferences for specific tools or commands
+- Including context about your development environment  
+- Setting project-specific rules or conventions
 
 ```bash
-# Example: More verbose explanations
-export ZSH_AI_SYSTEM_PROMPT="Generate zsh commands with brief inline comments explaining what they do."
+# Example: Prefer modern tools
+export ZSH_AI_SYSTEM_PROMPT="Prefer ripgrep (rg) over grep, fd over find, and exa over ls"
 
-# Example: Security-focused
-export ZSH_AI_SYSTEM_PROMPT="Generate secure zsh commands. Always validate input, avoid rm -rf, and use safe defaults."
+# Example: Security-conscious development
+export ZSH_AI_SYSTEM_PROMPT="Always use safe defaults. Avoid force flags like -f unless explicitly requested. Add --dry-run for destructive operations"
 
-# Example: Specific to your stack
-export ZSH_AI_SYSTEM_PROMPT="Generate zsh commands for a Node.js development environment. Prefer npm/yarn commands when applicable."
+# Example: Node.js environment
+export ZSH_AI_SYSTEM_PROMPT="When working with Node.js projects, prefer pnpm over npm. Use node: protocol for built-in modules"
+
+# Example: Git workflow preferences  
+export ZSH_AI_SYSTEM_PROMPT="For git commands, always use --verbose flag. Prefer descriptive branch names with prefixes like feature/, bugfix/, etc"
 ```
 
-Note: The default prompt is optimized for generating clean, executable commands. Only customize if you have specific needs.
+Note: Your custom instructions extend the base behavior - the AI will always output raw, executable commands first, then apply your additional preferences.

@@ -2,16 +2,10 @@
 
 # System prompt management for zsh-ai
 
-# Function to get the system prompt (can be overridden by user)
+# Function to get the system prompt (can be extended by user)
 _zsh_ai_get_system_prompt() {
-    # Check if user has provided a custom system prompt
-    if [[ -n "$ZSH_AI_SYSTEM_PROMPT" ]]; then
-        echo "$ZSH_AI_SYSTEM_PROMPT"
-        return
-    fi
-    
-    # Default system prompt
-    echo "You are a zsh command generator. Generate syntactically correct zsh commands based on the user's natural language request.
+    # Base system prompt - always included
+    local base_prompt="You are a zsh command generator. Generate syntactically correct zsh commands based on the user's natural language request.
 
 IMPORTANT RULES:
 1. Output ONLY the raw command - no explanations, no markdown, no backticks
@@ -24,4 +18,14 @@ Examples:
 - echo \"Current user: \$USER\" (variable expansion needs double quotes)
 - grep 'pattern with spaces' file.txt
 - find . -name '*.txt' (glob patterns in quotes)"
+    
+    # Check if user has provided additional instructions
+    if [[ -n "$ZSH_AI_SYSTEM_PROMPT" ]]; then
+        echo "$base_prompt
+
+ADDITIONAL INSTRUCTIONS:
+$ZSH_AI_SYSTEM_PROMPT"
+    else
+        echo "$base_prompt"
+    fi
 }
