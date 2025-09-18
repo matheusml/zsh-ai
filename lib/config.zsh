@@ -10,6 +10,10 @@
 : ${ZSH_AI_OPENAI_MODEL:="gpt-4o"}  # Default to GPT-4o
 : ${ZSH_AI_ANTHROPIC_MODEL:="claude-3-5-sonnet-20241022"}  # Default Anthropic model
 
+# Optional: Extend the system prompt with custom instructions
+# ZSH_AI_PROMPT_EXTEND - Add custom instructions to the AI prompt without replacing the core prompt
+# Example: export ZSH_AI_PROMPT_EXTEND="Always prefer ripgrep (rg) over grep. Use modern CLI tools when available."
+
 # Provider validation
 _zsh_ai_validate_config() {
     if [[ "$ZSH_AI_PROVIDER" != "anthropic" ]] && [[ "$ZSH_AI_PROVIDER" != "ollama" ]] && [[ "$ZSH_AI_PROVIDER" != "gemini" ]] && [[ "$ZSH_AI_PROVIDER" != "openai" ]]; then
