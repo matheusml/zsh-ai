@@ -379,6 +379,94 @@ test_get_system_prompt_with_empty_context() {
     teardown_test_env
 }
 
+test_get_system_prompt_with_extension() {
+    setup_test_env
+    
+    # Set custom prompt extension
+    export ZSH_AI_PROMPT_EXTEND="Always prefer modern CLI tools. Use ripgrep instead of grep."
+    
+    local prompt=$(_zsh_ai_get_system_prompt "test context")
+    
+    # Check that core prompt is still present
+    assert_contains "$prompt" "zsh command generator"
+    assert_contains "$prompt" "IMPORTANT RULES"
+    
+    # Check that extension is included
+    assert_contains "$prompt" "Always prefer modern CLI tools"
+    assert_contains "$prompt" "Use ripgrep instead of grep"
+    
+    # Check that context is still at the end
+    assert_contains "$prompt" "Context:"
+    assert_contains "$prompt" "test context"
+    
+    # Check proper ordering - extension should be between rules and context
+    local prompt_text="$prompt"
+    if [[ "$prompt_text" =~ "IMPORTANT RULES.*Always prefer modern CLI tools.*Context:" ]]; then
+        # Test passes - ordering is correct
+        :
+    else
+        echo "Error: Prompt extension not in correct position"
+        return 1
+    fi
+    
+    teardown_test_env
+}
+
+test_get_system_prompt_without_extension() {
+    setup_test_env
+    
+    # Ensure no extension is set
+    unset ZSH_AI_PROMPT_EXTEND
+    
+    local prompt=$(_zsh_ai_get_system_prompt "test context")
+    
+    # Should work exactly as before when no extension is set
+    assert_contains "$prompt" "zsh command generator"
+    assert_contains "$prompt" "IMPORTANT RULES"
+    assert_contains "$prompt" "Context:"
+    assert_contains "$prompt" "test context"
+    
+    # Should not have extra newlines where extension would be
+    local expected_pattern="glob patterns in quotes)\n\nContext:"
+    assert_contains "$prompt" "$expected_pattern"
+    
+    teardown_test_env
+}
+
+test_get_system_prompt_with_multiline_extension() {
+    setup_test_env
+    
+    # Set multi-line custom prompt extension
+    export ZSH_AI_PROMPT_EXTEND="Additional rules:\n1. Prefer fd over find\n2. Use bat instead of cat\n3. Always use exa for ls commands"
+    
+    local prompt=$(_zsh_ai_get_system_prompt "test context")
+    
+    # Check that all lines of extension are included
+    assert_contains "$prompt" "Additional rules:"
+    assert_contains "$prompt" "1. Prefer fd over find"
+    assert_contains "$prompt" "2. Use bat instead of cat"
+    assert_contains "$prompt" "3. Always use exa for ls commands"
+    
+    teardown_test_env
+}
+
+test_get_system_prompt_with_empty_extension() {
+    setup_test_env
+    
+    # Set empty extension (should behave same as unset)
+    export ZSH_AI_PROMPT_EXTEND=""
+    
+    local prompt=$(_zsh_ai_get_system_prompt "test context")
+    
+    # Should work exactly as before when extension is empty
+    assert_contains "$prompt" "zsh command generator"
+    assert_contains "$prompt" "IMPORTANT RULES"
+    assert_contains "$prompt" "Context:"
+    assert_contains "$prompt" "test context"
+    
+    teardown_test_env
+}
+
 # Run tests
 echo "Running utils tests..."
 test_routes_to_anthropic_provider && echo "✓ Routes to Anthropic provider when configured"
@@ -397,3 +485,7 @@ test_shows_loading_spinner && echo "✓ Shows loading spinner during command gen
 test_get_system_prompt_includes_all_rules && echo "✓ System prompt includes all rules"
 test_get_system_prompt_with_complex_context && echo "✓ System prompt handles complex context"
 test_get_system_prompt_with_empty_context && echo "✓ System prompt handles empty context"
+test_get_system_prompt_with_extension && echo "✓ System prompt includes custom extension when set"
+test_get_system_prompt_without_extension && echo "✓ System prompt works without extension"
+test_get_system_prompt_with_multiline_extension && echo "✓ System prompt handles multiline extension"
+test_get_system_prompt_with_empty_extension && echo "✓ System prompt handles empty extension"
