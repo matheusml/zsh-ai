@@ -125,6 +125,35 @@ export ZSH_AI_OPENAI_MODEL="gpt-4o"  # (default)
 # Ollama-specific settings 
 export ZSH_AI_OLLAMA_MODEL="llama3.2"  # (default)
 export ZSH_AI_OLLAMA_URL="http://localhost:11434"  # (default)
+
+# Advanced: Extend the AI prompt with custom instructions
+# This adds to the existing prompt without replacing it
+export ZSH_AI_PROMPT_EXTEND="Always prefer modern CLI tools like ripgrep, fd, and bat."
 ```
 
 **That's it!** Most users won't need to change anything.
+
+### Advanced Configuration
+
+#### Custom Prompt Extensions
+
+You can extend the AI's system prompt with your own instructions using `ZSH_AI_PROMPT_EXTEND`. This is useful for:
+- Adding preferences for specific tools
+- Customizing behavior for your workflow
+- Providing project-specific context
+
+```bash
+# Example: Prefer modern CLI alternatives
+export ZSH_AI_PROMPT_EXTEND="Always prefer ripgrep (rg) over grep, fd over find, and bat over cat."
+
+# Example: Add multiple rules
+export ZSH_AI_PROMPT_EXTEND="Additional preferences:
+- Use GNU coreutils commands when available
+- Prefer one-liners over scripts
+- Always add the -v flag for verbose output"
+
+# Example: Project-specific instructions
+export ZSH_AI_PROMPT_EXTEND="This is a Rails project. Use bundle exec for all ruby commands."
+```
+
+The extension is added to the core prompt without replacing it, ensuring the AI still follows essential command generation rules.
