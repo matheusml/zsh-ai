@@ -334,6 +334,51 @@ test_shows_loading_spinner() {
     teardown_test_env
 }
 
+test_get_system_prompt_includes_all_rules() {
+    setup_test_env
+    
+    local prompt=$(_zsh_ai_get_system_prompt "test context")
+    
+    # Check that all key parts of the prompt are present
+    assert_contains "$prompt" "zsh command generator"
+    assert_contains "$prompt" "IMPORTANT RULES"
+    assert_contains "$prompt" "Output ONLY the raw command"
+    assert_contains "$prompt" "no explanations, no markdown, no backticks"
+    assert_contains "$prompt" "single quotes"
+    assert_contains "$prompt" "double quotes"
+    assert_contains "$prompt" "variable expansion"
+    assert_contains "$prompt" "Examples:"
+    assert_contains "$prompt" "echo 'Hello World!'"
+    assert_contains "$prompt" "Context:"
+    assert_contains "$prompt" "test context"
+    
+    teardown_test_env
+}
+
+test_get_system_prompt_with_complex_context() {
+    setup_test_env
+    
+    local complex_context="Current dir: /home/user\nGit branch: main\nProject: Node.js"
+    local prompt=$(_zsh_ai_get_system_prompt "$complex_context")
+    
+    # Check that context is included at the end
+    assert_contains "$prompt" "Context:"
+    assert_contains "$prompt" "$complex_context"
+    
+    teardown_test_env
+}
+
+test_get_system_prompt_with_empty_context() {
+    setup_test_env
+    
+    local prompt=$(_zsh_ai_get_system_prompt "")
+    
+    # Should still include the Context: header even if empty
+    assert_contains "$prompt" "Context:\n"
+    
+    teardown_test_env
+}
+
 # Run tests
 echo "Running utils tests..."
 test_routes_to_anthropic_provider && echo "✓ Routes to Anthropic provider when configured"
@@ -349,3 +394,6 @@ test_combines_multiple_arguments && echo "✓ Combines multiple arguments in zsh
 test_puts_generated_command_in_buffer && echo "✓ Puts generated command in buffer"
 test_no_execution_happens && echo "✓ No execution happens"
 test_shows_loading_spinner && echo "✓ Shows loading spinner during command generation"
+test_get_system_prompt_includes_all_rules && echo "✓ System prompt includes all rules"
+test_get_system_prompt_with_complex_context && echo "✓ System prompt handles complex context"
+test_get_system_prompt_with_empty_context && echo "✓ System prompt handles empty context"
