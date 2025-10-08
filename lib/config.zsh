@@ -8,6 +8,7 @@
 : ${ZSH_AI_OLLAMA_URL:="http://localhost:11434"}  # Default Ollama URL
 : ${ZSH_AI_GEMINI_MODEL:="gemini-2.5-flash"}  # Fast Gemini 2.5 model
 : ${ZSH_AI_OPENAI_MODEL:="gpt-4o"}  # Default to GPT-4o
+: ${ZSH_AI_OPENAI_URL:="https://api.openai.com/v1/chat/completions"}  # Default to OpenAI
 : ${ZSH_AI_ANTHROPIC_MODEL:="claude-3-5-sonnet-20241022"}  # Default Anthropic model
 
 # Optional: Extend the system prompt with custom instructions

@@ -92,6 +92,7 @@ export OPENAI_API_KEY="your-api-key-here"
 export ZSH_AI_PROVIDER="openai"
 # Optional: Change model (default is gpt-4o)
 export ZSH_AI_OPENAI_MODEL="gpt-4o-mini"
+export ZSH_AI_OPENAI_URL="https://your-local-openai/v1/completions"
 ```
 
 **Option 4: Ollama (local models)**
@@ -121,6 +122,8 @@ export ZSH_AI_GEMINI_MODEL="gemini-2.5-flash"  # (default)
 
 # OpenAI-specific settings
 export ZSH_AI_OPENAI_MODEL="gpt-4o"  # (default)
+export ZSH_AI_OPENAI_URL="https://api.openai.com/v1/chat/completions" # (default)
+
 
 # Ollama-specific settings 
 export ZSH_AI_OLLAMA_MODEL="llama3.2"  # (default)
