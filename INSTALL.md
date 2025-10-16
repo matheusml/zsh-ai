@@ -92,7 +92,8 @@ export OPENAI_API_KEY="your-api-key-here"
 export ZSH_AI_PROVIDER="openai"
 # Optional: Change model (default is gpt-4o)
 export ZSH_AI_OPENAI_MODEL="gpt-4o-mini"
-export ZSH_AI_OPENAI_URL="https://your-local-openai/v1/chat/completions"
+# Optional: Change URL (default is https://api.openai.com/v1/chat/completions)
+export ZSH_AI_OPENAI_URL="https://<your-openai>/v1/chat/completions"
 ```
 
 **Option 4: Ollama (local models)**
@@ -102,6 +103,14 @@ ollama run llama3.2
 
 # Configure zsh-ai to use Ollama
 export ZSH_AI_PROVIDER="ollama"
+```
+
+**Option 5: Perplexity**
+```bash
+export OPENAI_API_KEY="pplx-your-api-key"
+export ZSH_AI_PROVIDER="openai"
+export ZSH_AI_OPENAI_URL="https://api.perplexity.ai/chat/completions"
+export ZSH_AI_OPENAI_MODEL="llama-3.1-sonar-small-128k-online"
 ```
 
 Add to your `~/.zshrc` to make it permanent.
