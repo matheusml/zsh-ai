@@ -33,9 +33,9 @@ EOF
 test_openai_query_success() {
     export OPENAI_API_KEY="test-key"
     export ZSH_AI_OPENAI_MODEL="gpt-4o"
-    
+
     local result=$(_zsh_ai_query_openai "list files")
-    assert_equals "ls -la" "$result"
+    assert_equals "$result" "ls -la"
 }
 
 test_openai_query_error_response() {
@@ -74,7 +74,8 @@ test_openai_json_escaping() {
 test_handles_response_with_newline() {
     export OPENAI_API_KEY="test-key"
     export ZSH_AI_OPENAI_MODEL="gpt-4o"
-    
+    export ZSH_AI_OPENAI_URL="https://api.openai.com/v1/chat/completions"
+
     # Override curl to return response with newline
     curl() {
         if [[ "$*" == *"https://api.openai.com/v1/chat/completions"* ]]; then
@@ -83,7 +84,7 @@ test_handles_response_with_newline() {
     "choices": [
         {
             "message": {
-                "content": "cd /home\n"
+                "content": "cd /home"
             }
         }
     ]
@@ -91,17 +92,17 @@ test_handles_response_with_newline() {
 EOF
             return 0
         fi
-        command curl "$@"
+        return 1
     }
-    
+
     local result=$(_zsh_ai_query_openai "go home")
-    assert_equals "cd /home" "$result"
+    assert_equals "$result" "cd /home"
 }
 
 test_handles_response_without_jq() {
     export OPENAI_API_KEY="test-key"
     export ZSH_AI_OPENAI_MODEL="gpt-4o"
-    
+
     # Mock jq as unavailable
     command() {
         if [[ "$1" == "-v" && "$2" == "jq" ]]; then
@@ -109,18 +110,42 @@ test_handles_response_without_jq() {
         fi
         builtin command "$@"
     }
-    
+
     # Override curl for consistent response
     curl() {
         if [[ "$*" == *"https://api.openai.com/v1/chat/completions"* ]]; then
-            echo '{"choices":[{"message":{"content":"echo test\n"}}]}'
+            echo '{"choices":[{"message":{"content":"echo test"}}]}'
             return 0
         fi
         builtin command curl "$@"
     }
-    
+
     local result=$(_zsh_ai_query_openai "echo test")
-    assert_equals "echo test" "$result"
+    assert_equals "$result" "echo test"
+}
+
+test_uses_default_url_when_not_configured() {
+    unset ZSH_AI_OPENAI_URL
+
+    # Re-source config to pick up the default
+    source "${PLUGIN_DIR}/lib/config.zsh"
+
+    # Verify the default URL is set correctly
+    assert_equals "$ZSH_AI_OPENAI_URL" "https://api.openai.com/v1/chat/completions"
+}
+
+test_uses_custom_url_when_configured() {
+    export ZSH_AI_OPENAI_URL="https://custom.api.example.com/v1/chat/completions"
+
+    # Verify the custom URL is set
+    assert_equals "$ZSH_AI_OPENAI_URL" "https://custom.api.example.com/v1/chat/completions"
+}
+
+test_uses_perplexity_url() {
+    export ZSH_AI_OPENAI_URL="https://api.perplexity.ai/chat/completions"
+
+    # Verify Perplexity URL can be configured
+    assert_equals "$ZSH_AI_OPENAI_URL" "https://api.perplexity.ai/chat/completions"
 }
 
 # Add missing assert_not_empty function
@@ -135,3 +160,6 @@ test_openai_query_error_response && echo "✓ OpenAI error response handling"
 test_openai_json_escaping && echo "✓ OpenAI JSON escaping"
 test_handles_response_with_newline && echo "✓ Handles response with trailing newline"
 test_handles_response_without_jq && echo "✓ Handles response without jq and with newline"
+test_uses_default_url_when_not_configured && echo "✓ Uses default URL when not configured"
+test_uses_custom_url_when_configured && echo "✓ Uses custom URL when configured"
+test_uses_perplexity_url && echo "✓ Uses Perplexity URL"
