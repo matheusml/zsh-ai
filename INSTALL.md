@@ -92,7 +92,7 @@ export OPENAI_API_KEY="your-api-key-here"
 export ZSH_AI_PROVIDER="openai"
 # Optional: Change model (default is gpt-4o)
 export ZSH_AI_OPENAI_MODEL="gpt-4o-mini"
-export ZSH_AI_OPENAI_URL="https://your-local-openai/v1/completions"
+export ZSH_AI_OPENAI_URL="https://your-local-openai/v1/chat/completions"
 ```
 
 **Option 4: Ollama (local models)**
