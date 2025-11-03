@@ -52,18 +52,26 @@ _zsh_ai_accept_line() {
         if [[ -n "$cmd" ]] && [[ "$cmd" != "Error:"* ]] && [[ "$cmd" != "API Error:"* ]]; then
             # Simply replace the buffer with the generated command
             BUFFER="$cmd"
-            
+
             # Move cursor to end of line
             CURSOR=$#BUFFER
         else
-            # Show error
+            # Show error - keep it visible
+            echo ""  # New line for better visibility
             print -P "%F{red}❌ Failed to generate command%f"
             if [[ -n "$cmd" ]]; then
                 print -P "%F{red}$cmd%f"
             fi
-            BUFFER=""
+            echo ""  # Extra line for readability
+
+            # Restore original buffer so user can see what query failed
+            BUFFER="$saved_buffer"
+            CURSOR=$#BUFFER
+
+            # Sleep briefly to ensure error is visible before prompt redraws
+            sleep 0.5
         fi
-        
+
         # Redraw the prompt
         zle reset-prompt
     else
