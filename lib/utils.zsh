@@ -110,10 +110,15 @@ zsh-ai() {
         # Put the command in the ZLE buffer (same as # method)
         print -z "$cmd"
     else
-        print -P "%F{red}Failed to generate command%f"
+        # Show error with better visibility
+        echo ""  # Blank line for spacing
+        print -P "%F{red}━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━%f"
+        print -P "%F{red}❌ Failed to generate command%f"
         if [[ -n "$cmd" ]]; then
-            echo "$cmd"
+            print -P "%F{red}$cmd%f"
         fi
+        print -P "%F{red}━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━%f"
+        echo ""  # Blank line for spacing
         return 1
     fi
 }
