@@ -15,6 +15,13 @@ _zsh_ai_query_openai() {
     
     # Prepare the JSON payload - escape quotes in the query
     local escaped_query=$(_zsh_ai_escape_json "$query")
+
+    # Determine token parameter based on model (newer models use max_completion_tokens)
+    local token_param="max_completion_tokens"
+    if [[ "$ZSH_AI_OPENAI_MODEL" == gpt-4* ]] || [[ "$ZSH_AI_OPENAI_MODEL" == gpt-3.5* ]]; then
+        token_param="max_tokens"
+    fi
+
     local json_payload=$(cat <<EOF
 {
     "model": "${ZSH_AI_OPENAI_MODEL}",
@@ -28,7 +35,7 @@ _zsh_ai_query_openai() {
             "content": "$escaped_query"
         }
     ],
-    "max_tokens": 256,
+    "$token_param": 256,
     "temperature": 0.3
 }
 EOF

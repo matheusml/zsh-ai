@@ -148,6 +148,118 @@ test_uses_perplexity_url() {
     assert_equals "$ZSH_AI_OPENAI_URL" "https://api.perplexity.ai/chat/completions"
 }
 
+test_uses_max_tokens_for_gpt4_models() {
+    export OPENAI_API_KEY="test-key"
+    export ZSH_AI_OPENAI_MODEL="gpt-4o"
+    export ZSH_AI_OPENAI_URL="https://api.openai.com/v1/chat/completions"
+    local payload_file=$(mktemp)
+
+    curl() {
+        if [[ "$*" == *"https://api.openai.com/v1/chat/completions"* ]]; then
+            local prev_arg=""
+            for arg in "$@"; do
+                if [[ "$prev_arg" == "--data" ]]; then
+                    echo "$arg" > "$payload_file"
+                    break
+                fi
+                prev_arg="$arg"
+            done
+            echo '{"choices":[{"message":{"content":"test"}}]}'
+            return 0
+        fi
+        command curl "$@"
+    }
+
+    _zsh_ai_query_openai "test" >/dev/null
+    local captured_payload=$(cat "$payload_file")
+    rm -f "$payload_file"
+    assert_contains "$captured_payload" '"max_tokens"'
+}
+
+test_uses_max_tokens_for_gpt35_models() {
+    export OPENAI_API_KEY="test-key"
+    export ZSH_AI_OPENAI_MODEL="gpt-3.5-turbo"
+    export ZSH_AI_OPENAI_URL="https://api.openai.com/v1/chat/completions"
+    local payload_file=$(mktemp)
+
+    curl() {
+        if [[ "$*" == *"https://api.openai.com/v1/chat/completions"* ]]; then
+            local prev_arg=""
+            for arg in "$@"; do
+                if [[ "$prev_arg" == "--data" ]]; then
+                    echo "$arg" > "$payload_file"
+                    break
+                fi
+                prev_arg="$arg"
+            done
+            echo '{"choices":[{"message":{"content":"test"}}]}'
+            return 0
+        fi
+        command curl "$@"
+    }
+
+    _zsh_ai_query_openai "test" >/dev/null
+    local captured_payload=$(cat "$payload_file")
+    rm -f "$payload_file"
+    assert_contains "$captured_payload" '"max_tokens"'
+}
+
+test_uses_max_completion_tokens_for_gpt5_models() {
+    export OPENAI_API_KEY="test-key"
+    export ZSH_AI_OPENAI_MODEL="gpt-5-nano"
+    export ZSH_AI_OPENAI_URL="https://api.openai.com/v1/chat/completions"
+    local payload_file=$(mktemp)
+
+    curl() {
+        if [[ "$*" == *"https://api.openai.com/v1/chat/completions"* ]]; then
+            local prev_arg=""
+            for arg in "$@"; do
+                if [[ "$prev_arg" == "--data" ]]; then
+                    echo "$arg" > "$payload_file"
+                    break
+                fi
+                prev_arg="$arg"
+            done
+            echo '{"choices":[{"message":{"content":"test"}}]}'
+            return 0
+        fi
+        command curl "$@"
+    }
+
+    _zsh_ai_query_openai "test" >/dev/null
+    local captured_payload=$(cat "$payload_file")
+    rm -f "$payload_file"
+    assert_contains "$captured_payload" '"max_completion_tokens"'
+}
+
+test_uses_max_completion_tokens_for_o1_models() {
+    export OPENAI_API_KEY="test-key"
+    export ZSH_AI_OPENAI_MODEL="o1-preview"
+    export ZSH_AI_OPENAI_URL="https://api.openai.com/v1/chat/completions"
+    local payload_file=$(mktemp)
+
+    curl() {
+        if [[ "$*" == *"https://api.openai.com/v1/chat/completions"* ]]; then
+            local prev_arg=""
+            for arg in "$@"; do
+                if [[ "$prev_arg" == "--data" ]]; then
+                    echo "$arg" > "$payload_file"
+                    break
+                fi
+                prev_arg="$arg"
+            done
+            echo '{"choices":[{"message":{"content":"test"}}]}'
+            return 0
+        fi
+        command curl "$@"
+    }
+
+    _zsh_ai_query_openai "test" >/dev/null
+    local captured_payload=$(cat "$payload_file")
+    rm -f "$payload_file"
+    assert_contains "$captured_payload" '"max_completion_tokens"'
+}
+
 # Add missing assert_not_empty function
 assert_not_empty() {
     [[ -n "$1" ]]
@@ -163,3 +275,7 @@ test_handles_response_without_jq && echo "✓ Handles response without jq and wi
 test_uses_default_url_when_not_configured && echo "✓ Uses default URL when not configured"
 test_uses_custom_url_when_configured && echo "✓ Uses custom URL when configured"
 test_uses_perplexity_url && echo "✓ Uses Perplexity URL"
+test_uses_max_tokens_for_gpt4_models && echo "✓ Uses max_tokens for gpt-4 models"
+test_uses_max_tokens_for_gpt35_models && echo "✓ Uses max_tokens for gpt-3.5 models"
+test_uses_max_completion_tokens_for_gpt5_models && echo "✓ Uses max_completion_tokens for gpt-5 models"
+test_uses_max_completion_tokens_for_o1_models && echo "✓ Uses max_completion_tokens for o1 models"
