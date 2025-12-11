@@ -47,10 +47,10 @@ EOF
     
     # Extract the response
     if command -v jq &> /dev/null; then
-        local result=$(echo "$response" | jq -r '.response // empty' 2>/dev/null)
+        local result=$(printf "%s" "$response" | jq -r '.response // empty' 2>/dev/null)
         if [[ -z "$result" ]]; then
             # Check for error message
-            local error=$(echo "$response" | jq -r '.error // empty' 2>/dev/null)
+            local error=$(printf "%s" "$response" | jq -r '.error // empty' 2>/dev/null)
             if [[ -n "$error" ]]; then
                 echo "Ollama Error: $error"
             else
@@ -58,30 +58,33 @@ EOF
             fi
             return 1
         fi
-        # Clean up the response - remove newlines and trailing whitespace
+        # Clean up the response - remove markdown code fences, newlines, and trailing whitespace
         # Commands should be single-line for shell execution
-        result=$(echo "$result" | tr -d '\n' | sed 's/[[:space:]]*$//')
-        echo "$result"
+        result=$(printf "%s" "$result" | sed 's/^```[a-z]*$//' | tr -d '\n' | sed 's/[[:space:]]*$//')
+        printf "%s" "$result"
     else
         # Fallback parsing without jq - handle responses with newlines
         # Use sed to extract the response field, handling potential newlines
-        local result=$(echo "$response" | sed -n 's/.*"response":"\([^"]*\)".*/\1/p' | head -1)
-        
+        local result=$(printf "%s" "$response" | sed -n 's/.*"response":"\([^"]*\)".*/\1/p' | head -1)
+
         # If the simple extraction failed, try a more complex approach for multiline responses
         if [[ -z "$result" ]]; then
             # Extract response field even if it contains escaped newlines
-            result=$(echo "$response" | perl -0777 -ne 'print $1 if /"response":"((?:[^"\\]|\\.)*)"/s' 2>/dev/null)
+            result=$(printf "%s" "$response" | perl -0777 -ne 'print $1 if /"response":"((?:[^"\\]|\\.)*)"/s' 2>/dev/null)
         fi
-        
+
         if [[ -z "$result" ]]; then
             echo "Error: Unable to parse response (install jq for better reliability)"
             return 1
         fi
-        
+
+        # Remove markdown code fences
+        result=$(printf "%s" "$result" | sed 's/^```[a-z]*$//')
+
         # Unescape JSON string (handle \n, \t, etc.) and clean up
-        result=$(echo "$result" | sed 's/\\n/\n/g; s/\\t/\t/g; s/\\r/\r/g; s/\\"/"/g; s/\\\\/\\/g')
+        result=$(printf "%s" "$result" | sed 's/\\n/\n/g; s/\\t/\t/g; s/\\r/\r/g; s/\\"/"/g; s/\\\\/\\/g')
         # Remove trailing newlines and spaces
-        result=$(echo "$result" | sed 's/[[:space:]]*$//')
-        echo "$result"
+        result=$(printf "%s" "$result" | sed 's/[[:space:]]*$//')
+        printf "%s" "$result"
     fi
 }
