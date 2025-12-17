@@ -11,26 +11,70 @@ source "$PLUGIN_DIR/lib/widget.zsh"
 
 # Test functions
 
-test_widget_initialization_creates_accept_line_widget() {
+test_widget_initialization_registers_precmd_hook() {
     setup_test_env
     export ZSH_AI_PROVIDER="anthropic"
     export ANTHROPIC_API_KEY="test-key"
-    
+
+    # Track add-zsh-hook calls
+    typeset -ga HOOK_CALLS
+    HOOK_CALLS=()
+    add-zsh-hook() {
+        HOOK_CALLS+=("$1:$2:$3")
+    }
+
+    # Mock autoload
+    autoload() {
+        # No-op for testing
+    }
+
+    _zsh_ai_init_widget
+
+    # Should have registered a precmd hook
+    assert_equals "${HOOK_CALLS[1]}" "precmd:_zsh_ai_do_init:"
+
+    teardown_test_env
+}
+
+test_widget_init_hook_registers_widget_and_removes_itself() {
+    setup_test_env
+    export ZSH_AI_PROVIDER="anthropic"
+    export ANTHROPIC_API_KEY="test-key"
+
+    # Track add-zsh-hook calls
+    typeset -ga HOOK_CALLS
+    HOOK_CALLS=()
+    add-zsh-hook() {
+        HOOK_CALLS+=("$1:$2:$3")
+    }
+
+    # Mock autoload
+    autoload() {
+        # No-op for testing
+    }
+
     # Mock ZLE functions
     typeset -gA MOCKED_WIDGETS
     zle() {
         case "$1" in
             "-N")
-                # Widget creation
                 MOCKED_WIDGETS[$2]="$3"
                 ;;
         esac
     }
-    
+
+    # Initialize widget (registers the hook)
     _zsh_ai_init_widget
-    
+
+    # Simulate the precmd hook being called
+    _zsh_ai_do_init
+
+    # Should have registered the widget
     assert_equals "${MOCKED_WIDGETS[accept-line]}" "_zsh_ai_accept_line"
-    
+
+    # Should have removed the hook (second call with -d flag)
+    assert_equals "${HOOK_CALLS[2]}" "-d:precmd:_zsh_ai_do_init"
+
     teardown_test_env
 }
 
@@ -390,7 +434,8 @@ test_handles_commands_with_special_characters() {
 
 # Run tests
 echo "Running widget tests..."
-test_widget_initialization_creates_accept_line_widget && echo "✓ Widget initialization creates accept-line widget"
+test_widget_initialization_registers_precmd_hook && echo "✓ Widget initialization registers precmd hook"
+test_widget_init_hook_registers_widget_and_removes_itself && echo "✓ Widget init hook registers widget and removes itself"
 test_normal_commands_execute_without_ai_processing && echo "✓ Normal commands execute without AI processing"
 test_multiline_ai_commands_execute_without_processing && echo "✓ Multiline AI commands execute without processing"
 test_ai_commands_starting_with_hash_are_processed && echo "✓ AI commands starting with # are processed"
