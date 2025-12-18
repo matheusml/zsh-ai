@@ -81,6 +81,13 @@ _zsh_ai_accept_line() {
 }
 
 # Create the widget and bind it
+# Uses precmd hook to defer registration until ZLE is fully initialized
+# This fixes the issue where zle -N fails silently during plugin sourcing
 _zsh_ai_init_widget() {
-    zle -N accept-line _zsh_ai_accept_line
+    _zsh_ai_do_init() {
+        zle -N accept-line _zsh_ai_accept_line
+        add-zsh-hook -d precmd _zsh_ai_do_init
+    }
+    autoload -Uz add-zsh-hook
+    add-zsh-hook precmd _zsh_ai_do_init
 }
