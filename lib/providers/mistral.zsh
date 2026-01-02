@@ -36,57 +36,57 @@ EOF
 )
     
     # Call the API
-    response=$(curl -s ${ZSH_AI_MISTRAL_URL} \
+    response=$(curl -s "${ZSH_AI_MISTRAL_URL}" \
         --header "Authorization: Bearer $MISTRAL_API_KEY" \
         --header "content-type: application/json" \
         --data "$json_payload" 2>&1)
     
     if [[ $? -ne 0 ]]; then
-        echo "Error: Failed to connect to Mistral API"
+        printf "%s" "Error: Failed to connect to Mistral API"
         return 1
     fi
     
     # Debug: Uncomment to see raw response
-    # echo "DEBUG: Raw response: $response" >&2
+    # printf "%s" "DEBUG: Raw response: $response" >&2
     
     # Extract the content from the response
     # Try using jq if available, otherwise fall back to sed/grep
     if command -v jq &> /dev/null; then
-        local result=$(echo "$response" | jq -r '.choices[0].message.content // empty' 2>/dev/null)
+        local result=$(printf "%s" "$response" | jq -r '.choices[0].message.content // empty' 2>/dev/null)
         if [[ -z "$result" ]]; then
             # Check for error message
-            local error=$(echo "$response" | jq -r '.error.message // empty' 2>/dev/null)
+            local error=$(printf "%s" "$response" | jq -r '.error.message // empty' 2>/dev/null)
             if [[ -n "$error" ]]; then
-                echo "API Error: $error"
+                printf "%s" "API Error: $error"
             else
-                echo "Error: Unable to parse response"
+                printf "%s" "Error: Unable to parse response"
             fi
             return 1
         fi
         # Clean up the response - remove newlines and trailing whitespace
         # Commands should be single-line for shell execution
-        result=$(echo "$result" | tr -d '\n' | sed 's/[[:space:]]*$//')
-        echo "$result"
+        result=$(printf "%s" "$result" | tr -d '\n' | sed 's/[[:space:]]*$//')
+        printf "%s" "$result"
     else
         # Fallback parsing without jq - handle responses with newlines
         # Use sed to extract the content field, handling potential newlines
-        local result=$(echo "$response" | sed -n 's/.*"content":"\([^"]*\)".*/\1/p' | head -1)
+        local result=$(printf "%s" "$response" | sed -n 's/.*"content":"\([^"]*\)".*/\1/p' | head -1)
         
         # If the simple extraction failed, try a more complex approach for multiline responses
         if [[ -z "$result" ]]; then
             # Extract content field even if it contains escaped newlines
-            result=$(echo "$response" | perl -0777 -ne 'print $1 if /"content":"((?:[^"\\]|\\.)*)"/s' 2>/dev/null)
+            result=$(printf "%s" "$response" | perl -0777 -ne 'print $1 if /"content":"((?:[^"\\]|\\.)*)"/s' 2>/dev/null)
         fi
         
         if [[ -z "$result" ]]; then
-            echo "Error: Unable to parse response (install jq for better reliability)"
+            printf "%s" "Error: Unable to parse response (install jq for better reliability)"
             return 1
         fi
         
         # Unescape JSON string (handle \n, \t, etc.) and clean up
-        result=$(echo "$result" | sed 's/\\n/\n/g; s/\\t/\t/g; s/\\r/\r/g; s/\\"/"/g; s/\\\\/\\/g')
+        result=$(printf "%s" "$result" | sed 's/\\n/\n/g; s/\\t/\t/g; s/\\r/\r/g; s/\\"/"/g; s/\\\\/\\/g')
         # Remove trailing newlines and spaces
-        result=$(echo "$result" | sed 's/[[:space:]]*$//')
-        echo "$result"
+        result=$(printf "%s" "$result" | sed 's/[[:space:]]*$//')
+        printf "%s" "$result"
     fi
 }
