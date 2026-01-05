@@ -1,6 +1,6 @@
 #!/usr/bin/env zsh
 
-# Tests for OpenAI provider
+# Tests for OpenAI and OpenAI-compatible providers
 
 # Source test helper and the files we're testing
 source "${0:A:h}/../test_helper.zsh"
@@ -279,3 +279,112 @@ test_uses_max_tokens_for_gpt4_models && echo "✓ Uses max_tokens for gpt-4 mode
 test_uses_max_tokens_for_gpt35_models && echo "✓ Uses max_tokens for gpt-3.5 models"
 test_uses_max_completion_tokens_for_gpt5_models && echo "✓ Uses max_completion_tokens for gpt-5 models"
 test_uses_max_completion_tokens_for_o1_models && echo "✓ Uses max_completion_tokens for o1 models"
+
+# OpenAI-compatible provider tests
+echo ""
+echo "Running OpenAI-compatible provider tests..."
+
+test_openai_compatible_works_without_api_key() {
+    # Ensure OPENAI_API_KEY is unset
+    unset OPENAI_API_KEY
+    export ZSH_AI_PROVIDER="openai-compatible"
+    export ZSH_AI_OPENAI_MODEL="gpt-4o"
+    export ZSH_AI_OPENAI_URL="http://localhost:8080/v1/chat/completions"
+
+    # Validation should pass without API key
+    local result=$(_zsh_ai_validate_config 2>&1)
+    local exit_code=$?
+    
+    assert_equals "$exit_code" "0"
+}
+
+test_openai_compatible_query_success() {
+    unset OPENAI_API_KEY
+    export ZSH_AI_PROVIDER="openai-compatible"
+    export ZSH_AI_OPENAI_MODEL="local-model"
+    export ZSH_AI_OPENAI_URL="http://localhost:8080/v1/chat/completions"
+
+    # Override curl for local endpoint
+    curl() {
+        if [[ "$*" == *"localhost:8080"* ]]; then
+            cat <<EOF
+{
+    "choices": [
+        {
+            "message": {
+                "content": "ls -la"
+            }
+        }
+    ]
+}
+EOF
+            return 0
+        fi
+        command curl "$@"
+    }
+
+    local result=$(_zsh_ai_query_openai "list files")
+    assert_equals "$result" "ls -la"
+}
+
+test_openai_compatible_with_optional_api_key() {
+    # Some openai-compatible endpoints still accept API keys
+    export OPENAI_API_KEY="optional-key"
+    export ZSH_AI_PROVIDER="openai-compatible"
+    export ZSH_AI_OPENAI_MODEL="local-model"
+    export ZSH_AI_OPENAI_URL="http://localhost:8080/v1/chat/completions"
+
+    # Override curl for local endpoint
+    curl() {
+        if [[ "$*" == *"localhost:8080"* ]]; then
+            cat <<EOF
+{
+    "choices": [
+        {
+            "message": {
+                "content": "ls -la"
+            }
+        }
+    ]
+}
+EOF
+            return 0
+        fi
+        command curl "$@"
+    }
+
+    local result=$(_zsh_ai_query_openai "list files")
+    assert_equals "$result" "ls -la"
+}
+
+test_openai_compatible_is_valid_provider() {
+    export ZSH_AI_PROVIDER="openai-compatible"
+    
+    local result=$(_zsh_ai_validate_config 2>&1)
+    
+    # Should not complain about invalid provider
+    if [[ "$result" == *"Invalid provider"* ]]; then
+        echo "FAIL: openai-compatible should be a valid provider"
+        return 1
+    fi
+    return 0
+}
+
+test_openai_provider_still_requires_api_key() {
+    # Ensure the original openai provider still requires the API key
+    unset OPENAI_API_KEY
+    export ZSH_AI_PROVIDER="openai"
+
+    local result=$(_zsh_ai_validate_config 2>&1)
+    local exit_code=$?
+    
+    # Should fail validation
+    assert_equals "$exit_code" "1"
+    assert_contains "$result" "OPENAI_API_KEY not set"
+}
+
+test_openai_compatible_works_without_api_key && echo "✓ OpenAI-compatible works without API key"
+test_openai_compatible_query_success && echo "✓ OpenAI-compatible query success"
+test_openai_compatible_with_optional_api_key && echo "✓ OpenAI-compatible works with optional API key"
+test_openai_compatible_is_valid_provider && echo "✓ OpenAI-compatible is a valid provider"
+test_openai_provider_still_requires_api_key && echo "✓ OpenAI provider still requires API key"
