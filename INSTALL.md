@@ -96,7 +96,16 @@ export ZSH_AI_OPENAI_MODEL="gpt-4o-mini"
 export ZSH_AI_OPENAI_URL="https://<your-openai>/v1/chat/completions"
 ```
 
-**Option 4: Ollama (local models)**
+**Option 4: OpenAI-compatible endpoints**
+```bash
+# For local or third-party OpenAI-compatible APIs (LM Studio, LocalAI, etc.)
+export ZSH_AI_PROVIDER="openai-compatible"
+export ZSH_AI_OPENAI_URL="http://localhost:8080/v1/chat/completions"
+export ZSH_AI_OPENAI_MODEL="your-model-name"
+# OPENAI_API_KEY is optional - set it if your endpoint requires authentication
+```
+
+**Option 5: Ollama (local models)**
 ```bash
 # Run a model (e.g., 3.2)
 ollama run llama3.2
@@ -105,10 +114,10 @@ ollama run llama3.2
 export ZSH_AI_PROVIDER="ollama"
 ```
 
-**Option 5: Perplexity**
+**Option 6: Perplexity**
 ```bash
 export OPENAI_API_KEY="pplx-your-api-key"
-export ZSH_AI_PROVIDER="openai"
+export ZSH_AI_PROVIDER="openai-compatible"
 export ZSH_AI_OPENAI_URL="https://api.perplexity.ai/chat/completions"
 export ZSH_AI_OPENAI_MODEL="llama-3.1-sonar-small-128k-online"
 ```
@@ -120,7 +129,7 @@ Add to your `~/.zshrc` to make it permanent.
 All configuration is done via environment variables with sensible defaults:
 
 ```bash
-# Choose AI provider: "anthropic" (default), "gemini", "openai", or "ollama"
+# Choose AI provider: "anthropic" (default), "gemini", "openai", "openai-compatible", or "ollama"
 export ZSH_AI_PROVIDER="anthropic"
 
 # Anthropic-specific settings
