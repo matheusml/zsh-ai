@@ -10,6 +10,7 @@
 - **Anthropic Claude** (default): [Get API key](https://console.anthropic.com/account/keys)
 - **Google Gemini**: [Get API key](https://makersuite.google.com/app/apikey)
 - **OpenAI**: [Get API key](https://platform.openai.com/api-keys)
+- **Mistral AI**: [Get API key](https://console.mistral.ai/)
 - **Ollama** (local): [Install Ollama](https://ollama.ai/download)
 
 ## Installation
@@ -96,7 +97,15 @@ export ZSH_AI_OPENAI_MODEL="gpt-4o-mini"
 export ZSH_AI_OPENAI_URL="https://<your-openai>/v1/chat/completions"
 ```
 
-**Option 4: Ollama (local models)**
+**Option 4: Mistral AI**
+```bash
+export MISTRAL_API_KEY="your-api-key-here"
+export ZSH_AI_PROVIDER="mistral"
+# Optional: Change model (default is mistral-small-latest)
+export ZSH_AI_MISTRAL_MODEL="mistral-large-latest"
+```
+
+**Option 5: Ollama (local models)**
 ```bash
 # Run a model (e.g., 3.2)
 ollama run llama3.2
@@ -105,7 +114,7 @@ ollama run llama3.2
 export ZSH_AI_PROVIDER="ollama"
 ```
 
-**Option 5: Perplexity**
+**Option 6: Perplexity**
 ```bash
 export OPENAI_API_KEY="pplx-your-api-key"
 export ZSH_AI_PROVIDER="openai"
@@ -120,7 +129,7 @@ Add to your `~/.zshrc` to make it permanent.
 All configuration is done via environment variables with sensible defaults:
 
 ```bash
-# Choose AI provider: "anthropic" (default), "gemini", "openai", or "ollama"
+# Choose AI provider: "anthropic" (default), "gemini", "openai", "mistral", or "ollama"
 export ZSH_AI_PROVIDER="anthropic"
 
 # Anthropic-specific settings
@@ -133,6 +142,9 @@ export ZSH_AI_GEMINI_MODEL="gemini-2.5-flash"  # (default)
 export ZSH_AI_OPENAI_MODEL="gpt-4o"  # (default)
 export ZSH_AI_OPENAI_URL="https://api.openai.com/v1/chat/completions" # (default)
 
+# Mistral-specific settings
+export ZSH_AI_MISTRAL_MODEL="mistral-small-latest"  # (default)
+export ZSH_AI_MISTRAL_URL="https://api.mistral.ai/v1/chat/completions"  # (default)
 
 # Ollama-specific settings 
 export ZSH_AI_OLLAMA_MODEL="llama3.2"  # (default)

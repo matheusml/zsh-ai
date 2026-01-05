@@ -2,7 +2,7 @@
 
 > The lightweight AI assistant that lives in your terminal
 
-Transform natural language into shell commands instantly. Works with cloud-based AI (Anthropic Claude, Google Gemini, OpenAI) and local models (Ollama). No dependencies, no complex setup - just type what you want and get the command you need.
+Transform natural language into shell commands instantly. Works with cloud-based AI (Anthropic Claude, Google Gemini, OpenAI, Mistral) and local models (Ollama). No dependencies, no complex setup - just type what you want and get the command you need.
 
 <img src="https://img.shields.io/github/v/release/matheusml/zsh-ai?label=version&color=yellow" alt="Version"> <img src="https://img.shields.io/badge/dependencies-zero-brightgreen" alt="Zero Dependencies"> <img src="https://img.shields.io/badge/size-<5KB-blue" alt="Tiny Size"> <img src="https://img.shields.io/github/license/matheusml/zsh-ai?color=lightgrey" alt="License">
 
@@ -66,7 +66,7 @@ $ for img in *.{jpg,png}; do convert "$img" -quality 85 "$img"; done
    brew tap matheusml/zsh-ai && brew install zsh-ai
    ```
    
-2. **Configure** - Set up your AI provider (Anthropic, Gemini, or Ollama)
+2. **Configure** - Set up your AI provider (Anthropic, Gemini, OpenAI, Mistral, or Ollama)
 
 3. **Use** - Type `# your command` and press Enter!
 

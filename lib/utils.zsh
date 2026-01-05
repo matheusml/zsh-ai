@@ -37,6 +37,8 @@ _zsh_ai_query() {
         _zsh_ai_query_gemini "$query"
     elif [[ "$ZSH_AI_PROVIDER" == "openai" ]]; then
         _zsh_ai_query_openai "$query"
+    elif [[ "$ZSH_AI_PROVIDER" == "mistral" ]]; then
+        _zsh_ai_query_mistral "$query"
     else
         _zsh_ai_query_anthropic "$query"
     fi
@@ -70,6 +72,8 @@ zsh-ai() {
             echo "Gemini model: $ZSH_AI_GEMINI_MODEL"
         elif [[ "$ZSH_AI_PROVIDER" == "openai" ]]; then
             echo "OpenAI model: $ZSH_AI_OPENAI_MODEL"
+        elif [[ "$ZSH_AI_PROVIDER" == "mistral" ]]; then
+            echo "Mistral model: $ZSH_AI_MISTRAL_MODEL"
         fi
         return 1
     fi
