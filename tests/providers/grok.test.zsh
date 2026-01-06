@@ -11,7 +11,7 @@ source "${PLUGIN_DIR}/lib/utils.zsh"
 
 # Mock curl to test API interactions
 curl() {
-    if [[ "$*" == *"https://api.x.ai/v1/chat/completions"* ]]; then
+    if [[ "$*" == *"${ZSH_AI_GROK_URL}"* ]]; then
         # Simulate successful response
         cat <<EOF
 {
@@ -44,7 +44,7 @@ test_grok_query_error_response() {
 
     # Override curl to return an error
     curl() {
-        if [[ "$*" == *"https://api.x.ai/v1/chat/completions"* ]]; then
+        if [[ "$*" == *"${ZSH_AI_GROK_URL}"* ]]; then
             cat <<EOF
 {
     "error": {
@@ -77,7 +77,7 @@ test_handles_response_with_newline() {
 
     # Override curl to return response with newline
     curl() {
-        if [[ "$*" == *"https://api.x.ai/v1/chat/completions"* ]]; then
+        if [[ "$*" == *"${ZSH_AI_GROK_URL}"* ]]; then
             cat <<EOF
 {
     "choices": [
@@ -112,7 +112,7 @@ test_handles_response_without_jq() {
 
     # Override curl for consistent response
     curl() {
-        if [[ "$*" == *"https://api.x.ai/v1/chat/completions"* ]]; then
+        if [[ "$*" == *"${ZSH_AI_GROK_URL}"* ]]; then
             echo '{"choices":[{"message":{"content":"echo test"}}]}'
             return 0
         fi
@@ -123,14 +123,25 @@ test_handles_response_without_jq() {
     assert_equals "$result" "echo test"
 }
 
-test_uses_fixed_api_url() {
+test_uses_configurable_api_url() {
     export XAI_API_KEY="test-key"
     export ZSH_AI_GROK_MODEL="grok-4-1-fast-non-reasoning"
+    export ZSH_AI_GROK_URL="https://custom.grok.api/v1/chat/completions"
 
-    # The API URL is hardcoded in the grok.zsh file
-    # Test just verifies a successful query works (which implicitly tests the URL)
+    # Override curl to check the custom URL is used
+    curl() {
+        if [[ "$*" == *"https://custom.grok.api/v1/chat/completions"* ]]; then
+            echo '{"choices":[{"message":{"content":"custom url works"}}]}'
+            return 0
+        fi
+        return 1
+    }
+
     local result=$(_zsh_ai_query_grok "test")
-    assert_not_empty "$result"
+    assert_equals "$result" "custom url works"
+
+    # Reset to default
+    export ZSH_AI_GROK_URL="https://api.x.ai/v1/chat/completions"
 }
 
 test_uses_max_completion_tokens() {
@@ -139,7 +150,7 @@ test_uses_max_completion_tokens() {
     local payload_file=$(mktemp)
 
     curl() {
-        if [[ "$*" == *"https://api.x.ai/v1/chat/completions"* ]]; then
+        if [[ "$*" == *"${ZSH_AI_GROK_URL}"* ]]; then
             local prev_arg=""
             for arg in "$@"; do
                 if [[ "$prev_arg" == "--data" ]]; then
@@ -182,6 +193,6 @@ test_grok_query_error_response && echo "✓ Grok error response handling"
 test_grok_json_escaping && echo "✓ Grok JSON escaping"
 test_handles_response_with_newline && echo "✓ Handles response with trailing newline"
 test_handles_response_without_jq && echo "✓ Handles response without jq and with newline"
-test_uses_fixed_api_url && echo "✓ Uses fixed API URL (hardcoded to api.x.ai)"
+test_uses_configurable_api_url && echo "✓ Uses configurable API URL (ZSH_AI_GROK_URL)"
 test_uses_max_completion_tokens && echo "✓ Uses max_completion_tokens parameter"
 test_uses_xai_api_key && echo "✓ Uses XAI_API_KEY environment variable"

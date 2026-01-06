@@ -16,8 +16,6 @@ _zsh_ai_query_grok() {
     # Prepare the JSON payload - escape quotes in the query
     local escaped_query=$(_zsh_ai_escape_json "$query")
 
-    # Grok API URL (fixed, not configurable)
-    local api_url="https://api.x.ai/v1/chat/completions"
 
     local json_payload=$(cat <<EOF
 {
@@ -39,7 +37,7 @@ EOF
 )
 
     # Call the API
-    response=$(curl -s ${api_url} \
+    response=$(curl -s "${ZSH_AI_GROK_URL}" \
         --header "Authorization: Bearer $XAI_API_KEY" \
         --header "content-type: application/json" \
         --data "$json_payload" 2>&1)

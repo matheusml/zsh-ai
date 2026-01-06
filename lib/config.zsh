@@ -11,6 +11,7 @@
 : ${ZSH_AI_OPENAI_URL:="https://api.openai.com/v1/chat/completions"}  # Default to OpenAI
 : ${ZSH_AI_ANTHROPIC_MODEL:="claude-haiku-4-5"}  # Default Anthropic model
 : ${ZSH_AI_GROK_MODEL:="grok-4-1-fast-non-reasoning"}  # Default Grok model
+: ${ZSH_AI_GROK_URL:="https://api.x.ai/v1/chat/completions"}  # Default Grok URL
 : ${ZSH_AI_MISTRAL_MODEL:="mistral-small-latest"}  # Default Mistral model
 : ${ZSH_AI_MISTRAL_URL:="https://api.mistral.ai/v1/chat/completions"}  # Default Mistral URL
 
