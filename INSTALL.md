@@ -10,6 +10,7 @@
 - **Anthropic Claude** (default): [Get API key](https://console.anthropic.com/account/keys)
 - **Google Gemini**: [Get API key](https://makersuite.google.com/app/apikey)
 - **OpenAI**: [Get API key](https://platform.openai.com/api-keys)
+- **Grok (X.AI)**: [Get API key](https://console.x.ai/)
 - **Mistral AI**: [Get API key](https://console.mistral.ai/)
 - **Ollama** (local): [Install Ollama](https://ollama.ai/download)
 
@@ -122,6 +123,14 @@ export ZSH_AI_OPENAI_URL="https://api.perplexity.ai/chat/completions"
 export ZSH_AI_OPENAI_MODEL="llama-3.1-sonar-small-128k-online"
 ```
 
+**Option 6: Grok (X.AI)**
+```bash
+export XAI_API_KEY="your-api-key-here"
+export ZSH_AI_PROVIDER="grok"
+# Optional: Change model (default is grok-4-1-fast-non-reasoning)
+export ZSH_AI_GROK_MODEL="grok-4-1-fast-non-reasoning"
+```
+
 Add to your `~/.zshrc` to make it permanent.
 
 ### Configuration
@@ -129,7 +138,7 @@ Add to your `~/.zshrc` to make it permanent.
 All configuration is done via environment variables with sensible defaults:
 
 ```bash
-# Choose AI provider: "anthropic" (default), "gemini", "openai", "mistral", or "ollama"
+# Choose AI provider: "anthropic" (default), "gemini", "openai", "grok", "mistral", or "ollama"
 export ZSH_AI_PROVIDER="anthropic"
 
 # Anthropic-specific settings
@@ -141,6 +150,9 @@ export ZSH_AI_GEMINI_MODEL="gemini-2.5-flash"  # (default)
 # OpenAI-specific settings
 export ZSH_AI_OPENAI_MODEL="gpt-4o"  # (default)
 export ZSH_AI_OPENAI_URL="https://api.openai.com/v1/chat/completions" # (default)
+
+# Grok-specific settings
+export ZSH_AI_GROK_MODEL="grok-4-1-fast-non-reasoning"  # (default)
 
 # Mistral-specific settings
 export ZSH_AI_MISTRAL_MODEL="mistral-small-latest"  # (default)

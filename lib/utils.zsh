@@ -24,7 +24,7 @@ _zsh_ai_escape_json() {
 # Main query function that routes to the appropriate provider
 _zsh_ai_query() {
     local query="$1"
-    
+
     if [[ "$ZSH_AI_PROVIDER" == "ollama" ]]; then
         # Check if Ollama is running first
         if ! _zsh_ai_check_ollama; then
@@ -37,6 +37,8 @@ _zsh_ai_query() {
         _zsh_ai_query_gemini "$query"
     elif [[ "$ZSH_AI_PROVIDER" == "openai" ]]; then
         _zsh_ai_query_openai "$query"
+    elif [[ "$ZSH_AI_PROVIDER" == "grok" ]]; then
+        _zsh_ai_query_grok "$query"
     elif [[ "$ZSH_AI_PROVIDER" == "mistral" ]]; then
         _zsh_ai_query_mistral "$query"
     else
@@ -72,6 +74,8 @@ zsh-ai() {
             echo "Gemini model: $ZSH_AI_GEMINI_MODEL"
         elif [[ "$ZSH_AI_PROVIDER" == "openai" ]]; then
             echo "OpenAI model: $ZSH_AI_OPENAI_MODEL"
+        elif [[ "$ZSH_AI_PROVIDER" == "grok" ]]; then
+            echo "Grok model: $ZSH_AI_GROK_MODEL"
         elif [[ "$ZSH_AI_PROVIDER" == "mistral" ]]; then
             echo "Mistral model: $ZSH_AI_MISTRAL_MODEL"
         fi
@@ -89,7 +93,7 @@ zsh-ai() {
     
     # Disable job control notifications (same as widget)
     setopt local_options no_monitor no_notify
-    
+
     # Start the API query in background
     (_zsh_ai_execute_command "$query" > "$tmpfile" 2>/dev/null) &
     local pid=$!
