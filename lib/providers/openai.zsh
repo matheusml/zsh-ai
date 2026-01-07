@@ -41,9 +41,12 @@ _zsh_ai_query_openai() {
 EOF
 )
     
-    # Call the API
-    response=$(curl -s ${ZSH_AI_OPENAI_URL} \
-        --header "Authorization: Bearer $OPENAI_API_KEY" \
+    # Call the API - only add auth header if API key is set
+    local auth_args=()
+    [[ -n "$OPENAI_API_KEY" ]] && auth_args=(--header "Authorization: Bearer $OPENAI_API_KEY")
+
+    response=$(curl -s "${ZSH_AI_OPENAI_URL}" \
+        "${auth_args[@]}" \
         --header "content-type: application/json" \
         --data "$json_payload" 2>&1)
     
