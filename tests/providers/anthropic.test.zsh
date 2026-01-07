@@ -295,6 +295,28 @@ test_handles_response_with_escaped_newline_without_jq() {
     teardown_test_env
 }
 
+test_uses_correct_url_from_config() {
+    setup_test_env
+    export ANTHROPIC_API_KEY="test-api-key"
+    export ZSH_AI_ANTHROPIC_URL="https://custom-proxy.example.com/v1/messages"
+    
+    # Mock jq as available
+    mock_jq "true"
+    
+    # Mock successful response
+    local mock_response='{"content":[{"text":"ls -la"}]}'
+    mock_curl_response "$mock_response" 0
+    
+    local output
+    output=$(_zsh_ai_query_anthropic "list files")
+    local result=$?
+    
+    assert_equals "$result" "0"
+    assert_equals "$output" "ls -la"
+    
+    teardown_test_env
+}
+
 # Run tests
 echo "Running anthropic provider tests..."
 test_successful_api_call_with_jq && echo "✓ Successful API call with jq available"
@@ -310,3 +332,4 @@ test_uses_correct_model && echo "✓ Uses correct model"
 test_handles_multiline_context_properly && echo "✓ Handles multiline context properly"
 test_handles_response_with_escaped_newline_with_jq && echo "✓ Handles response with escaped newline (with jq)"
 test_handles_response_with_escaped_newline_without_jq && echo "✓ Handles response with escaped newline (without jq)"
+test_uses_correct_url_from_config && echo "✓ Uses correct URL from config"

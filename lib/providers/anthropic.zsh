@@ -31,7 +31,7 @@ EOF
 )
     
     # Call the API
-    response=$(curl -s https://api.anthropic.com/v1/messages \
+    response=$(curl -s "${ZSH_AI_ANTHROPIC_URL}" \
         --header "x-api-key: $ANTHROPIC_API_KEY" \
         --header "anthropic-version: 2023-06-01" \
         --header "content-type: application/json" \

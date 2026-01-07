@@ -80,6 +80,10 @@ echo "source ~/.zsh-ai/zsh-ai.plugin.zsh" >> ~/.zshrc
 **Option 1: Anthropic Claude (default)**
 ```bash
 export ANTHROPIC_API_KEY="your-api-key-here"
+# Optional: Change model (default is claude-haiku-4-5)
+export ZSH_AI_ANTHROPIC_MODEL="claude-sonnet-4-5-20250929"
+# Optional: Change URL (default is https://api.anthropic.com/v1/messages)
+export ZSH_AI_ANTHROPIC_URL="https://<your-anthropic>/v1/messages"
 ```
 
 **Option 2: Google Gemini**
@@ -143,7 +147,8 @@ All configuration is done via environment variables with sensible defaults:
 export ZSH_AI_PROVIDER="anthropic"
 
 # Anthropic-specific settings
-export ZSH_AI_ANTHROPIC_MODEL="claude-3-5-sonnet-20241022"  # (default)
+export ZSH_AI_ANTHROPIC_MODEL="claude-haiku-4-5"  # (default)
+export ZSH_AI_ANTHROPIC_URL="https://api.anthropic.com/v1/messages"  # (default)
 
 # Gemini-specific settings
 export ZSH_AI_GEMINI_MODEL="gemini-2.5-flash"  # (default)
