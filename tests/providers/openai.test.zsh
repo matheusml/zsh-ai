@@ -279,3 +279,95 @@ test_uses_max_tokens_for_gpt4_models && echo "✓ Uses max_tokens for gpt-4 mode
 test_uses_max_tokens_for_gpt35_models && echo "✓ Uses max_tokens for gpt-3.5 models"
 test_uses_max_completion_tokens_for_gpt5_models && echo "✓ Uses max_completion_tokens for gpt-5 models"
 test_uses_max_completion_tokens_for_o1_models && echo "✓ Uses max_completion_tokens for o1 models"
+
+# Tests for keyless OpenAI-compatible endpoints
+echo ""
+echo "Running OpenAI-compatible (keyless) tests..."
+
+test_openai_requires_key_for_default_url() {
+    unset OPENAI_API_KEY
+    export ZSH_AI_PROVIDER="openai"
+    # Explicitly set to default URL to ensure test works
+    export ZSH_AI_OPENAI_URL="https://api.openai.com/v1/chat/completions"
+
+    local result=$(_zsh_ai_validate_config 2>&1)
+    local exit_code=$?
+
+    assert_equals "$exit_code" "1"
+    assert_contains "$result" "OPENAI_API_KEY not set"
+}
+
+test_openai_works_without_key_for_custom_url() {
+    unset OPENAI_API_KEY
+    export ZSH_AI_PROVIDER="openai"
+    export ZSH_AI_OPENAI_URL="http://localhost:8080/v1/chat/completions"
+
+    local result=$(_zsh_ai_validate_config 2>&1)
+    local exit_code=$?
+
+    # Should pass validation without API key
+    assert_equals "$exit_code" "0"
+}
+
+test_openai_query_without_auth_header() {
+    unset OPENAI_API_KEY
+    export ZSH_AI_PROVIDER="openai"
+    export ZSH_AI_OPENAI_MODEL="local-model"
+    export ZSH_AI_OPENAI_URL="http://localhost:8080/v1/chat/completions"
+    local curl_args_file=$(mktemp)
+
+    curl() {
+        if [[ "$*" == *"localhost:8080"* ]]; then
+            # Save the curl arguments to check later
+            echo "$*" > "$curl_args_file"
+            echo '{"choices":[{"message":{"content":"ls -la"}}]}'
+            return 0
+        fi
+        command curl "$@"
+    }
+
+    _zsh_ai_query_openai "list files" >/dev/null
+    local curl_args=$(cat "$curl_args_file")
+    rm -f "$curl_args_file"
+
+    # Authorization header should NOT be present
+    if [[ "$curl_args" == *"Authorization"* ]]; then
+        echo "FAIL: Authorization header should not be present"
+        return 1
+    fi
+    return 0
+}
+
+test_openai_query_with_auth_header_when_key_set() {
+    export OPENAI_API_KEY="test-key"
+    export ZSH_AI_PROVIDER="openai"
+    export ZSH_AI_OPENAI_MODEL="local-model"
+    export ZSH_AI_OPENAI_URL="http://localhost:8080/v1/chat/completions"
+    local curl_args_file=$(mktemp)
+
+    curl() {
+        if [[ "$*" == *"localhost:8080"* ]]; then
+            # Save the curl arguments to check later
+            echo "$*" > "$curl_args_file"
+            echo '{"choices":[{"message":{"content":"ls -la"}}]}'
+            return 0
+        fi
+        command curl "$@"
+    }
+
+    _zsh_ai_query_openai "list files" >/dev/null
+    local curl_args=$(cat "$curl_args_file")
+    rm -f "$curl_args_file"
+
+    # Authorization header SHOULD be present
+    if [[ "$curl_args" != *"Authorization"* ]]; then
+        echo "FAIL: Authorization header should be present"
+        return 1
+    fi
+    return 0
+}
+
+test_openai_requires_key_for_default_url && echo "✓ Requires API key for default OpenAI URL"
+test_openai_works_without_key_for_custom_url && echo "✓ Works without API key for custom URL"
+test_openai_query_without_auth_header && echo "✓ Omits Authorization header when no API key"
+test_openai_query_with_auth_header_when_key_set && echo "✓ Includes Authorization header when API key is set"

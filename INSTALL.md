@@ -102,7 +102,16 @@ export ZSH_AI_OPENAI_MODEL="gpt-4o-mini"
 export ZSH_AI_OPENAI_URL="https://<your-openai>/v1/chat/completions"
 ```
 
-**Option 4: Mistral AI**
+**Option 4: OpenAI-compatible local servers**
+```bash
+# For local servers (LM Studio, LocalAI, llama.cpp, vLLM, etc.)
+export ZSH_AI_PROVIDER="openai"
+export ZSH_AI_OPENAI_URL="http://localhost:8080/v1/chat/completions"
+export ZSH_AI_OPENAI_MODEL="your-model-name"
+# No API key needed - authentication is skipped for non-OpenAI URLs
+```
+
+**Option 5: Mistral AI**
 ```bash
 export MISTRAL_API_KEY="your-api-key-here"
 export ZSH_AI_PROVIDER="mistral"
@@ -110,7 +119,7 @@ export ZSH_AI_PROVIDER="mistral"
 export ZSH_AI_MISTRAL_MODEL="mistral-large-latest"
 ```
 
-**Option 5: Grok (X.AI)**
+**Option 6: Grok (X.AI)**
 ```bash
 export XAI_API_KEY="your-api-key-here"
 export ZSH_AI_PROVIDER="grok"
@@ -118,7 +127,7 @@ export ZSH_AI_PROVIDER="grok"
 export ZSH_AI_GROK_MODEL="grok-4-1-fast-non-reasoning"
 ```
 
-**Option 6: Ollama (local models)**
+**Option 7: Ollama (local models)**
 ```bash
 # Run a model (e.g., 3.2)
 ollama run llama3.2
@@ -127,7 +136,7 @@ ollama run llama3.2
 export ZSH_AI_PROVIDER="ollama"
 ```
 
-**Option 7: Perplexity**
+**Option 8: Perplexity**
 ```bash
 export OPENAI_API_KEY="pplx-your-api-key"
 export ZSH_AI_PROVIDER="openai"

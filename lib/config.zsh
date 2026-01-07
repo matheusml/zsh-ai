@@ -41,7 +41,9 @@ _zsh_ai_validate_config() {
             return 1
         fi
     elif [[ "$ZSH_AI_PROVIDER" == "openai" ]]; then
-        if [[ -z "$OPENAI_API_KEY" ]]; then
+        # Only require API key when using the default OpenAI URL
+        # Custom URLs (local servers, proxies) may not need authentication
+        if [[ -z "$OPENAI_API_KEY" && "$ZSH_AI_OPENAI_URL" == "https://api.openai.com/v1/chat/completions" ]]; then
             echo "zsh-ai: Warning: OPENAI_API_KEY not set. Plugin will not function."
             echo "zsh-ai: Set OPENAI_API_KEY or use ZSH_AI_PROVIDER=ollama for local models."
             return 1
