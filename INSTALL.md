@@ -1,142 +1,114 @@
 # Installation Guide
 
-## Prerequisites
+## Quick Install (Homebrew)
 
-- ✅ zsh 5.0+ (you probably already have this)
-- ✅ `curl` (already on macOS/Linux)
-- ➕ `jq` (optional, for better reliability)
-
-**Choose your AI provider:**
-- **Anthropic Claude** (default): [Get API key](https://console.anthropic.com/account/keys)
-- **Google Gemini**: [Get API key](https://makersuite.google.com/app/apikey)
-- **OpenAI**: [Get API key](https://platform.openai.com/api-keys)
-- **Grok (X.AI)**: [Get API key](https://console.x.ai/)
-- **Mistral AI**: [Get API key](https://console.mistral.ai/)
-- **Ollama** (local): [Install Ollama](https://ollama.ai/download)
-
-## Installation
-
-### Homebrew (Recommended)
-
-1. Run this
+The fastest way to get started:
 
 ```bash
-brew tap matheusml/zsh-ai
-brew install zsh-ai
+# 1. Install
+brew tap matheusml/zsh-ai && brew install zsh-ai
+
+# 2. Add to your shell
+echo 'source $(brew --prefix)/share/zsh-ai/zsh-ai.plugin.zsh' >> ~/.zshrc
+
+# 3. Set up a provider (see next section)
+echo 'export ANTHROPIC_API_KEY="your-key-here"' >> ~/.zshrc
+
+# 4. Restart your terminal
+source ~/.zshrc
 ```
 
-2. Add this to your `~/.zshrc`
+## Verify It Works
+
+After installation, test that everything is set up correctly:
 
 ```bash
-source $(brew --prefix)/share/zsh-ai/zsh-ai.plugin.zsh
+# Type this and press Enter:
+# show current date and time
 ```
 
-3. Start a new terminal session.
+You should see a command like `date` appear in your prompt. If you see an error about missing API keys, check the provider setup below.
 
-### Antigen
+## Choose Your AI Provider
 
-1. Add the following to your `.zshrc`:
+You need to configure one AI provider. Pick the one that works best for you:
 
-    ```sh
-    antigen bundle matheusml/zsh-ai
-    ```
+### Anthropic Claude (Default)
 
-2. Start a new terminal session.
+The default provider. Great balance of quality and speed.
 
-### Oh My Zsh
-
-1. Clone it
-```bash
-git clone https://github.com/matheusml/zsh-ai ${ZSH_CUSTOM:-~/.oh-my-zsh/custom}/plugins/zsh-ai
-```
-
-2. Add `zsh-ai` to your plugins list in `~/.zshrc`:
-
-```bash
-plugins=( 
-    # other plugins...
-    zsh-ai
-)
-```
-
-3. Start a new terminal session.
-
-### Manual Installation
-
-1. Clone it
-```bash
-git clone https://github.com/matheusml/zsh-ai ~/.zsh-ai
-```
-
-2. Add it to your `~/.zshrc`
-```bash
-echo "source ~/.zsh-ai/zsh-ai.plugin.zsh" >> ~/.zshrc
-```
-
-3. Start a new terminal session.
-
-### Setup
-
-**Option 1: Anthropic Claude (default)**
 ```bash
 export ANTHROPIC_API_KEY="your-api-key-here"
-# Optional: Change model (default is claude-haiku-4-5)
-export ZSH_AI_ANTHROPIC_MODEL="claude-sonnet-4-5-20250929"
-# Optional: Change URL (default is https://api.anthropic.com/v1/messages)
-export ZSH_AI_ANTHROPIC_URL="https://<your-anthropic>/v1/messages"
 ```
 
-**Option 2: Google Gemini**
+[Get your API key →](https://console.anthropic.com/account/keys)
+
+### OpenAI
+
+```bash
+export OPENAI_API_KEY="your-api-key-here"
+export ZSH_AI_PROVIDER="openai"
+```
+
+[Get your API key →](https://platform.openai.com/api-keys)
+
+### Google Gemini
+
 ```bash
 export GEMINI_API_KEY="your-api-key-here"
 export ZSH_AI_PROVIDER="gemini"
 ```
 
-**Option 3: OpenAI**
-```bash
-export OPENAI_API_KEY="your-api-key-here"
-export ZSH_AI_PROVIDER="openai"
-# Optional: Change model (default is gpt-4o)
-export ZSH_AI_OPENAI_MODEL="gpt-4o-mini"
-# Optional: Change URL (default is https://api.openai.com/v1/chat/completions)
-export ZSH_AI_OPENAI_URL="https://<your-openai>/v1/chat/completions"
-```
+[Get your API key →](https://makersuite.google.com/app/apikey)
 
-**Option 4: OpenAI-compatible local servers**
-```bash
-# For local servers (LM Studio, LocalAI, llama.cpp, vLLM, etc.)
-export ZSH_AI_PROVIDER="openai"
-export ZSH_AI_OPENAI_URL="http://localhost:8080/v1/chat/completions"
-export ZSH_AI_OPENAI_MODEL="your-model-name"
-# No API key needed - authentication is skipped for non-OpenAI URLs
-```
+### Ollama (Local & Free)
 
-**Option 5: Mistral AI**
-```bash
-export MISTRAL_API_KEY="your-api-key-here"
-export ZSH_AI_PROVIDER="mistral"
-# Optional: Change model (default is mistral-small-latest)
-export ZSH_AI_MISTRAL_MODEL="mistral-large-latest"
-```
+Run AI models locally on your machine. Completely free and private—no API keys needed.
 
-**Option 6: Grok (X.AI)**
 ```bash
-export XAI_API_KEY="your-api-key-here"
-export ZSH_AI_PROVIDER="grok"
-# Optional: Change model (default is grok-4-1-fast-non-reasoning)
-export ZSH_AI_GROK_MODEL="grok-4-1-fast-non-reasoning"
-```
+# First, install and start Ollama
+# Download from https://ollama.ai/download
 
-**Option 7: Ollama (local models)**
-```bash
-# Run a model (e.g., 3.2)
-ollama run llama3.2
+# Pull a model
+ollama pull llama3.2
 
-# Configure zsh-ai to use Ollama
+# Configure zsh-ai
 export ZSH_AI_PROVIDER="ollama"
 ```
 
-**Option 8: Perplexity**
+[Download Ollama →](https://ollama.ai/download)
+
+### Mistral AI
+
+```bash
+export MISTRAL_API_KEY="your-api-key-here"
+export ZSH_AI_PROVIDER="mistral"
+```
+
+[Get your API key →](https://console.mistral.ai/)
+
+### Grok (X.AI)
+
+```bash
+export XAI_API_KEY="your-api-key-here"
+export ZSH_AI_PROVIDER="grok"
+```
+
+[Get your API key →](https://console.x.ai/)
+
+### OpenAI-Compatible Servers
+
+Works with LM Studio, LocalAI, llama.cpp, vLLM, and other local servers:
+
+```bash
+export ZSH_AI_PROVIDER="openai"
+export ZSH_AI_OPENAI_URL="http://localhost:8080/v1/chat/completions"
+export ZSH_AI_OPENAI_MODEL="your-model-name"
+# No API key needed for local servers
+```
+
+### Perplexity
+
 ```bash
 export OPENAI_API_KEY="pplx-your-api-key"
 export ZSH_AI_PROVIDER="openai"
@@ -144,68 +116,115 @@ export ZSH_AI_OPENAI_URL="https://api.perplexity.ai/chat/completions"
 export ZSH_AI_OPENAI_MODEL="llama-3.1-sonar-small-128k-online"
 ```
 
+---
 
-Add to your `~/.zshrc` to make it permanent.
+**Remember:** Add these exports to your `~/.zshrc` to make them permanent.
 
-### Configuration
+## Alternative Installation Methods
 
-All configuration is done via environment variables with sensible defaults:
+### Oh My Zsh
 
 ```bash
-# Choose AI provider: "anthropic" (default), "gemini", "openai", "grok", "mistral", or "ollama"
-export ZSH_AI_PROVIDER="anthropic"
+# 1. Clone the plugin
+git clone https://github.com/matheusml/zsh-ai ${ZSH_CUSTOM:-~/.oh-my-zsh/custom}/plugins/zsh-ai
 
-# Anthropic-specific settings
-export ZSH_AI_ANTHROPIC_MODEL="claude-haiku-4-5"  # (default)
-export ZSH_AI_ANTHROPIC_URL="https://api.anthropic.com/v1/messages"  # (default)
+# 2. Add to your plugins list in ~/.zshrc
+plugins=(
+    # other plugins...
+    zsh-ai
+)
 
-# Gemini-specific settings
-export ZSH_AI_GEMINI_MODEL="gemini-2.5-flash"  # (default)
-
-# OpenAI-specific settings
-export ZSH_AI_OPENAI_MODEL="gpt-4o"  # (default)
-export ZSH_AI_OPENAI_URL="https://api.openai.com/v1/chat/completions" # (default)
-
-# Grok-specific settings
-export ZSH_AI_GROK_MODEL="grok-4-1-fast-non-reasoning"  # (default)
-export ZSH_AI_GROK_URL="https://api.x.ai/v1/chat/completions"  # (default)
-
-# Mistral-specific settings
-export ZSH_AI_MISTRAL_MODEL="mistral-small-latest"  # (default)
-export ZSH_AI_MISTRAL_URL="https://api.mistral.ai/v1/chat/completions"  # (default)
-
-# Ollama-specific settings 
-export ZSH_AI_OLLAMA_MODEL="llama3.2"  # (default)
-export ZSH_AI_OLLAMA_URL="http://localhost:11434"  # (default)
-
-# Advanced: Extend the AI prompt with custom instructions
-# This adds to the existing prompt without replacing it
-export ZSH_AI_PROMPT_EXTEND="Always prefer modern CLI tools like ripgrep, fd, and bat."
+# 3. Restart your terminal
 ```
 
-**That's it!** Most users won't need to change anything.
+### Antigen
 
-### Advanced Configuration
-
-#### Custom Prompt Extensions
-
-You can extend the AI's system prompt with your own instructions using `ZSH_AI_PROMPT_EXTEND`. This is useful for:
-- Adding preferences for specific tools
-- Customizing behavior for your workflow
-- Providing project-specific context
+Add to your `.zshrc`:
 
 ```bash
-# Example: Prefer modern CLI alternatives
+antigen bundle matheusml/zsh-ai
+```
+
+### Manual Installation
+
+```bash
+# 1. Clone the repo
+git clone https://github.com/matheusml/zsh-ai ~/.zsh-ai
+
+# 2. Add to your ~/.zshrc
+echo "source ~/.zsh-ai/zsh-ai.plugin.zsh" >> ~/.zshrc
+
+# 3. Restart your terminal
+```
+
+## Configuration Reference
+
+All settings with their default values:
+
+```bash
+# Provider selection
+export ZSH_AI_PROVIDER="anthropic"  # anthropic, openai, gemini, ollama, mistral, grok
+
+# Anthropic
+export ZSH_AI_ANTHROPIC_MODEL="claude-haiku-4-5"
+export ZSH_AI_ANTHROPIC_URL="https://api.anthropic.com/v1/messages"
+
+# OpenAI
+export ZSH_AI_OPENAI_MODEL="gpt-4o"
+export ZSH_AI_OPENAI_URL="https://api.openai.com/v1/chat/completions"
+
+# Gemini
+export ZSH_AI_GEMINI_MODEL="gemini-2.5-flash"
+
+# Ollama
+export ZSH_AI_OLLAMA_MODEL="llama3.2"
+export ZSH_AI_OLLAMA_URL="http://localhost:11434"
+
+# Mistral
+export ZSH_AI_MISTRAL_MODEL="mistral-small-latest"
+export ZSH_AI_MISTRAL_URL="https://api.mistral.ai/v1/chat/completions"
+
+# Grok
+export ZSH_AI_GROK_MODEL="grok-4-1-fast-non-reasoning"
+export ZSH_AI_GROK_URL="https://api.x.ai/v1/chat/completions"
+```
+
+## Advanced Configuration
+
+### Custom Prompt Extensions
+
+Customize the AI's behavior with your own instructions:
+
+```bash
+# Prefer modern CLI tools
 export ZSH_AI_PROMPT_EXTEND="Always prefer ripgrep (rg) over grep, fd over find, and bat over cat."
 
-# Example: Add multiple rules
+# Project-specific instructions
+export ZSH_AI_PROMPT_EXTEND="This is a Rails project. Use bundle exec for all ruby commands."
+
+# Multiple preferences
 export ZSH_AI_PROMPT_EXTEND="Additional preferences:
 - Use GNU coreutils commands when available
 - Prefer one-liners over scripts
 - Always add the -v flag for verbose output"
-
-# Example: Project-specific instructions
-export ZSH_AI_PROMPT_EXTEND="This is a Rails project. Use bundle exec for all ruby commands."
 ```
 
-The extension is added to the core prompt without replacing it, ensuring the AI still follows essential command generation rules.
+Your extension is added to the core prompt, so the AI still follows all essential command generation rules.
+
+## Prerequisites
+
+For reference, here's what you need:
+
+- **zsh 5.0+** (you probably already have this)
+- **curl** (already on macOS/Linux)
+- **jq** (optional, for better JSON parsing reliability)
+
+Install jq if you run into JSON parsing issues:
+
+```bash
+# macOS
+brew install jq
+
+# Ubuntu/Debian
+sudo apt-get install jq
+```
