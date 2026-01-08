@@ -1,24 +1,38 @@
 # 🪄 zsh-ai
 
-> The lightweight AI assistant that lives in your terminal
-
-Transform natural language into shell commands instantly. Works with cloud-based AI (Anthropic Claude, Google Gemini, OpenAI, Grok, Mistral) and local models (Ollama). No dependencies, no complex setup - just type what you want and get the command you need.
+> Stop Googling for command syntax. Just describe what you want.
 
 <img src="https://img.shields.io/github/v/release/matheusml/zsh-ai?label=version&color=yellow" alt="Version"> <img src="https://img.shields.io/badge/dependencies-zero-brightgreen" alt="Zero Dependencies"> <img src="https://img.shields.io/badge/size-<5KB-blue" alt="Tiny Size"> <img src="https://img.shields.io/github/license/matheusml/zsh-ai?color=lightgrey" alt="License">
 
+You know what you want to do, but not the exact command. So you Google it, scroll through Stack Overflow, copy something, adapt it, and hope it works.
+
+**zsh-ai fixes this.** Type what you want in plain English, and get the right command instantly—ready to run.
+
+```bash
+$ # find all files larger than 100mb modified in the last week
+$ find . -type f -size +100M -mtime -7    # ← appears instantly, ready to run
+```
+
+Works with Anthropic Claude, OpenAI, Google Gemini, Mistral, Grok, and local models via Ollama. A single 5KB shell script with zero dependencies.
+
 ## Why zsh-ai?
 
-**🪶 Featherweight** - A single 5KB shell script. No Python, no Node.js, etc.
+**🎯 Just works** - Type `# what you want` and press Enter. The command appears ready to execute. No copy-paste, no adapting.
 
-**🚀 Lightning Fast** - Starts instantly with your shell.
+**🧠 Context-aware** - Detects your project type, git status, and current directory. Ask for "run tests" and get `npm test` in a Node project or `pytest` in Python.
 
-**🎯 Dead Simple** - Just type `# what you want to do` and press Enter. That's it.
+**🔒 You stay in control** - Commands appear in your prompt for review before running. Use local Ollama models for complete privacy, or bring your own API keys.
 
-**🔒 Privacy First** - Use local Ollama models for complete privacy, or bring your own API keys. Your commands stay local, API calls only when you trigger them.
+**🪶 Lightweight** - A 5KB shell script. No Python, no Node.js, no package managers. Starts instantly with your shell.
 
-**🛠️ Zero Dependencies** - Optionally `jq` for reliability.
+## How It Works
 
-**🧠 Context Aware** - Automatically detects project type, git status, and current directory for smarter suggestions.
+1. **You type** a comment describing what you want: `# compress all images in this folder`
+2. **zsh-ai gathers context** about your environment (current directory, git status, project type)
+3. **AI generates** the right command for your situation
+4. **Command appears** in your prompt, ready to review and run
+
+The command never runs automatically—you always see it first and decide whether to execute it.
 
 ## Demo
 
@@ -60,17 +74,35 @@ $ for img in *.{jpg,png}; do convert "$img" -quality 85 "$img"; done
 
 ## Quick Start
 
-1. **Install** - Choose your preferred method:
-   ```bash
-   # Homebrew (recommended)
-   brew tap matheusml/zsh-ai && brew install zsh-ai
-   ```
-   
-2. **Configure** - Set up your AI provider (Anthropic, Gemini, OpenAI, Mistral, or Ollama)
+**1. Install** (Homebrew)
+```bash
+brew tap matheusml/zsh-ai && brew install zsh-ai
+```
 
-3. **Use** - Type `# your command` and press Enter!
+**2. Add to your shell**
+```bash
+echo 'source $(brew --prefix)/share/zsh-ai/zsh-ai.plugin.zsh' >> ~/.zshrc
+```
 
-📚 **[Full Installation Guide →](INSTALL.md)**
+**3. Set your API key** (pick one provider)
+```bash
+# Anthropic (default)
+echo 'export ANTHROPIC_API_KEY="your-key-here"' >> ~/.zshrc
+
+# Or OpenAI
+echo 'export OPENAI_API_KEY="your-key-here"' >> ~/.zshrc
+echo 'export ZSH_AI_PROVIDER="openai"' >> ~/.zshrc
+
+# Or use local Ollama (free, private)
+echo 'export ZSH_AI_PROVIDER="ollama"' >> ~/.zshrc
+```
+
+**4. Restart your terminal and try it!**
+```bash
+# show disk usage for current directory
+```
+
+📚 **[Full Installation Guide →](INSTALL.md)** - Other install methods (Oh My Zsh, Antigen, manual) and all provider options
 
 ## Documentation
 
