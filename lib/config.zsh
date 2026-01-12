@@ -2,6 +2,44 @@
 
 # Configuration and validation for zsh-ai
 
+# Load config from file (XDG-compliant location)
+# Config file location: $XDG_CONFIG_HOME/zsh-ai/config or ~/.config/zsh-ai/config
+_zsh_ai_load_config_file() {
+    local config_dir="${XDG_CONFIG_HOME:-$HOME/.config}/zsh-ai"
+    local config_file="$config_dir/config"
+
+    [[ -f "$config_file" ]] && source "$config_file"
+}
+
+# Save user-set environment variables before loading defaults/config file
+# This ensures environment variables always take precedence over config file
+local _user_set_provider=${ZSH_AI_PROVIDER+x}
+local _user_val_provider="$ZSH_AI_PROVIDER"
+local _user_set_ollama_model=${ZSH_AI_OLLAMA_MODEL+x}
+local _user_val_ollama_model="$ZSH_AI_OLLAMA_MODEL"
+local _user_set_ollama_url=${ZSH_AI_OLLAMA_URL+x}
+local _user_val_ollama_url="$ZSH_AI_OLLAMA_URL"
+local _user_set_gemini_model=${ZSH_AI_GEMINI_MODEL+x}
+local _user_val_gemini_model="$ZSH_AI_GEMINI_MODEL"
+local _user_set_openai_model=${ZSH_AI_OPENAI_MODEL+x}
+local _user_val_openai_model="$ZSH_AI_OPENAI_MODEL"
+local _user_set_openai_url=${ZSH_AI_OPENAI_URL+x}
+local _user_val_openai_url="$ZSH_AI_OPENAI_URL"
+local _user_set_anthropic_model=${ZSH_AI_ANTHROPIC_MODEL+x}
+local _user_val_anthropic_model="$ZSH_AI_ANTHROPIC_MODEL"
+local _user_set_anthropic_url=${ZSH_AI_ANTHROPIC_URL+x}
+local _user_val_anthropic_url="$ZSH_AI_ANTHROPIC_URL"
+local _user_set_grok_model=${ZSH_AI_GROK_MODEL+x}
+local _user_val_grok_model="$ZSH_AI_GROK_MODEL"
+local _user_set_grok_url=${ZSH_AI_GROK_URL+x}
+local _user_val_grok_url="$ZSH_AI_GROK_URL"
+local _user_set_mistral_model=${ZSH_AI_MISTRAL_MODEL+x}
+local _user_val_mistral_model="$ZSH_AI_MISTRAL_MODEL"
+local _user_set_mistral_url=${ZSH_AI_MISTRAL_URL+x}
+local _user_val_mistral_url="$ZSH_AI_MISTRAL_URL"
+local _user_set_prompt_extend=${ZSH_AI_PROMPT_EXTEND+x}
+local _user_val_prompt_extend="$ZSH_AI_PROMPT_EXTEND"
+
 # Set default values for configuration
 : ${ZSH_AI_PROVIDER:="anthropic"}  # Default to anthropic for backwards compatibility
 : ${ZSH_AI_OLLAMA_MODEL:="llama3.2"}  # Popular fast model
@@ -16,9 +54,33 @@
 : ${ZSH_AI_MISTRAL_MODEL:="mistral-small-latest"}  # Default Mistral model
 : ${ZSH_AI_MISTRAL_URL:="https://api.mistral.ai/v1/chat/completions"}  # Default Mistral URL
 
+# Load config file (overrides defaults)
+_zsh_ai_load_config_file
+
+# Restore user-set environment variables (override config file)
+[[ -n "$_user_set_provider" ]] && ZSH_AI_PROVIDER="$_user_val_provider"
+[[ -n "$_user_set_ollama_model" ]] && ZSH_AI_OLLAMA_MODEL="$_user_val_ollama_model"
+[[ -n "$_user_set_ollama_url" ]] && ZSH_AI_OLLAMA_URL="$_user_val_ollama_url"
+[[ -n "$_user_set_gemini_model" ]] && ZSH_AI_GEMINI_MODEL="$_user_val_gemini_model"
+[[ -n "$_user_set_openai_model" ]] && ZSH_AI_OPENAI_MODEL="$_user_val_openai_model"
+[[ -n "$_user_set_openai_url" ]] && ZSH_AI_OPENAI_URL="$_user_val_openai_url"
+[[ -n "$_user_set_anthropic_model" ]] && ZSH_AI_ANTHROPIC_MODEL="$_user_val_anthropic_model"
+[[ -n "$_user_set_anthropic_url" ]] && ZSH_AI_ANTHROPIC_URL="$_user_val_anthropic_url"
+[[ -n "$_user_set_grok_model" ]] && ZSH_AI_GROK_MODEL="$_user_val_grok_model"
+[[ -n "$_user_set_grok_url" ]] && ZSH_AI_GROK_URL="$_user_val_grok_url"
+[[ -n "$_user_set_mistral_model" ]] && ZSH_AI_MISTRAL_MODEL="$_user_val_mistral_model"
+[[ -n "$_user_set_mistral_url" ]] && ZSH_AI_MISTRAL_URL="$_user_val_mistral_url"
+[[ -n "$_user_set_prompt_extend" ]] && ZSH_AI_PROMPT_EXTEND="$_user_val_prompt_extend"
+
 # Optional: Extend the system prompt with custom instructions
 # ZSH_AI_PROMPT_EXTEND - Add custom instructions to the AI prompt without replacing the core prompt
 # Example: export ZSH_AI_PROMPT_EXTEND="Always prefer ripgrep (rg) over grep. Use modern CLI tools when available."
+#
+# Config file support:
+# Create ~/.config/zsh-ai/config (or $XDG_CONFIG_HOME/zsh-ai/config) with settings like:
+#   ZSH_AI_PROVIDER=ollama
+#   ZSH_AI_OLLAMA_MODEL=llama3.2
+# Environment variables always take precedence over config file values.
 
 # Provider validation
 _zsh_ai_validate_config() {
