@@ -42,8 +42,10 @@ EOF
 )
     
     # Call the API - only add auth header if API key is set
+    # ZSH_AI_OPENAI_API_KEY takes precedence (useful for LiteLLM and other proxies)
     local auth_args=()
-    [[ -n "$OPENAI_API_KEY" ]] && auth_args=(--header "Authorization: Bearer $OPENAI_API_KEY")
+    local api_key="${ZSH_AI_OPENAI_API_KEY:-$OPENAI_API_KEY}"
+    [[ -n "$api_key" ]] && auth_args=(--header "Authorization: Bearer $api_key")
 
     response=$(curl -s "${ZSH_AI_OPENAI_URL}" \
         "${auth_args[@]}" \

@@ -107,6 +107,15 @@ export ZSH_AI_OPENAI_MODEL="your-model-name"
 # No API key needed for local servers
 ```
 
+For proxies that require authentication (like LiteLLM), use `ZSH_AI_OPENAI_API_KEY` to avoid conflicts with your real `OPENAI_API_KEY`:
+
+```bash
+export ZSH_AI_PROVIDER="openai"
+export ZSH_AI_OPENAI_URL="http://localhost:4000/v1/chat/completions"
+export ZSH_AI_OPENAI_MODEL="gpt-4"
+export ZSH_AI_OPENAI_API_KEY="sk-your-litellm-key"  # Won't interfere with OPENAI_API_KEY
+```
+
 ### Perplexity
 
 ```bash
@@ -172,6 +181,7 @@ export ZSH_AI_ANTHROPIC_URL="https://api.anthropic.com/v1/messages"
 # OpenAI
 export ZSH_AI_OPENAI_MODEL="gpt-4o"
 export ZSH_AI_OPENAI_URL="https://api.openai.com/v1/chat/completions"
+export ZSH_AI_OPENAI_API_KEY=""  # Optional: override OPENAI_API_KEY for proxies
 
 # Gemini
 export ZSH_AI_GEMINI_MODEL="gemini-2.5-flash"
