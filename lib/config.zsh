@@ -15,6 +15,8 @@
 : ${ZSH_AI_GROK_URL:="https://api.x.ai/v1/chat/completions"}  # Default Grok URL
 : ${ZSH_AI_MISTRAL_MODEL:="mistral-small-latest"}  # Default Mistral model
 : ${ZSH_AI_MISTRAL_URL:="https://api.mistral.ai/v1/chat/completions"}  # Default Mistral URL
+: ${ZSH_AI_OPENCODE_MODEL:="opencode/gpt-5-nano"}  # Default OpenCode model (free)
+: ${ZSH_AI_OPENCODE_URL:="https://opencode.ai/zen/v1/chat/completions"}  # Default OpenCode URL
 
 # Optional: Extend the system prompt with custom instructions
 # ZSH_AI_PROMPT_EXTEND - Add custom instructions to the AI prompt without replacing the core prompt
@@ -22,8 +24,8 @@
 
 # Provider validation
 _zsh_ai_validate_config() {
-    if [[ "$ZSH_AI_PROVIDER" != "anthropic" ]] && [[ "$ZSH_AI_PROVIDER" != "ollama" ]] && [[ "$ZSH_AI_PROVIDER" != "gemini" ]] && [[ "$ZSH_AI_PROVIDER" != "openai" ]] && [[ "$ZSH_AI_PROVIDER" != "grok" ]] && [[ "$ZSH_AI_PROVIDER" != "mistral" ]]; then
-        echo "zsh-ai: Error: Invalid provider '$ZSH_AI_PROVIDER'. Use 'anthropic', 'ollama', 'gemini', 'openai', 'grok', or 'mistral'."
+    if [[ "$ZSH_AI_PROVIDER" != "anthropic" ]] && [[ "$ZSH_AI_PROVIDER" != "ollama" ]] && [[ "$ZSH_AI_PROVIDER" != "gemini" ]] && [[ "$ZSH_AI_PROVIDER" != "openai" ]] && [[ "$ZSH_AI_PROVIDER" != "grok" ]] && [[ "$ZSH_AI_PROVIDER" != "mistral" ]] && [[ "$ZSH_AI_PROVIDER" != "opencode" ]]; then
+        echo "zsh-ai: Error: Invalid provider '$ZSH_AI_PROVIDER'. Use 'anthropic', 'ollama', 'gemini', 'openai', 'grok', 'mistral', or 'opencode'."
         return 1
     fi
 
@@ -58,6 +60,12 @@ _zsh_ai_validate_config() {
         if [[ -z "$MISTRAL_API_KEY" ]]; then
             echo "zsh-ai: Warning: MISTRAL_API_KEY not set. Plugin will not function."
             echo "zsh-ai: Set MISTRAL_API_KEY or use ZSH_AI_PROVIDER=ollama for local models."
+            return 1
+        fi
+    elif [[ "$ZSH_AI_PROVIDER" == "opencode" ]]; then
+        if [[ -z "$OPENCODE_API_KEY" && -z "$ZSH_AI_OPENCODE_API_KEY" ]]; then
+            echo "zsh-ai: Warning: OPENCODE_API_KEY not set. Plugin will not function."
+            echo "zsh-ai: Get your API key from https://opencode.ai/zen"
             return 1
         fi
     fi

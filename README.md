@@ -13,7 +13,7 @@ $ # find all files larger than 100mb modified in the last week
 $ find . -type f -size +100M -mtime -7    # ← appears instantly, ready to run
 ```
 
-Works with Anthropic Claude, OpenAI, Google Gemini, Mistral, Grok, and local models via Ollama. A single 5KB shell script with zero dependencies.
+Works with Anthropic Claude, OpenAI, Google Gemini, Mistral, Grok, OpenCode Zen, and local models via Ollama. A single 5KB shell script with zero dependencies.
 
 ## Why zsh-ai?
 
@@ -92,6 +92,10 @@ echo 'export ANTHROPIC_API_KEY="your-key-here"' >> ~/.zshrc
 # Or OpenAI
 echo 'export OPENAI_API_KEY="your-key-here"' >> ~/.zshrc
 echo 'export ZSH_AI_PROVIDER="openai"' >> ~/.zshrc
+
+# Or OpenCode Zen (free gpt-5-nano model)
+echo 'export OPENCODE_API_KEY="your-key-here"' >> ~/.zshrc
+echo 'export ZSH_AI_PROVIDER="opencode"' >> ~/.zshrc
 
 # Or use local Ollama (free, private)
 echo 'export ZSH_AI_PROVIDER="ollama"' >> ~/.zshrc

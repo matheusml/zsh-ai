@@ -96,6 +96,17 @@ export ZSH_AI_PROVIDER="grok"
 
 [Get your API key →](https://console.x.ai/)
 
+### OpenCode Zen
+
+[OpenCode Zen](https://opencode.ai/zen) offers curated models including a free GPT-5 Nano tier.
+
+```bash
+export OPENCODE_API_KEY="your-api-key-here"
+export ZSH_AI_PROVIDER="opencode"
+```
+
+[Get your API key →](https://opencode.ai/zen)
+
 ### OpenAI-Compatible Servers
 
 Works with LM Studio, LocalAI, llama.cpp, vLLM, and other local servers:
@@ -172,7 +183,7 @@ All settings with their default values:
 
 ```bash
 # Provider selection
-export ZSH_AI_PROVIDER="anthropic"  # anthropic, openai, gemini, ollama, mistral, grok
+export ZSH_AI_PROVIDER="anthropic"  # anthropic, openai, gemini, ollama, mistral, grok, opencode
 
 # Anthropic
 export ZSH_AI_ANTHROPIC_MODEL="claude-haiku-4-5"
@@ -197,6 +208,10 @@ export ZSH_AI_MISTRAL_URL="https://api.mistral.ai/v1/chat/completions"
 # Grok
 export ZSH_AI_GROK_MODEL="grok-4-1-fast-non-reasoning"
 export ZSH_AI_GROK_URL="https://api.x.ai/v1/chat/completions"
+
+# OpenCode
+export ZSH_AI_OPENCODE_MODEL="opencode/gpt-5-nano"
+export ZSH_AI_OPENCODE_URL="https://opencode.ai/zen/v1/chat/completions"
 ```
 
 ## Advanced Configuration
