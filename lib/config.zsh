@@ -15,6 +15,7 @@
 : ${ZSH_AI_GROK_URL:="https://api.x.ai/v1/chat/completions"}  # Default Grok URL
 : ${ZSH_AI_MISTRAL_MODEL:="mistral-small-latest"}  # Default Mistral model
 : ${ZSH_AI_MISTRAL_URL:="https://api.mistral.ai/v1/chat/completions"}  # Default Mistral URL
+: ${ZSH_AI_CLAUDE_CODE_MODEL:="claude-haiku-4-5"}  # Default Claude Code model (avoids burning Opus tokens)
 
 # Optional: Extend the system prompt with custom instructions
 # ZSH_AI_PROMPT_EXTEND - Add custom instructions to the AI prompt without replacing the core prompt
@@ -22,8 +23,8 @@
 
 # Provider validation
 _zsh_ai_validate_config() {
-    if [[ "$ZSH_AI_PROVIDER" != "anthropic" ]] && [[ "$ZSH_AI_PROVIDER" != "ollama" ]] && [[ "$ZSH_AI_PROVIDER" != "gemini" ]] && [[ "$ZSH_AI_PROVIDER" != "openai" ]] && [[ "$ZSH_AI_PROVIDER" != "grok" ]] && [[ "$ZSH_AI_PROVIDER" != "mistral" ]]; then
-        echo "zsh-ai: Error: Invalid provider '$ZSH_AI_PROVIDER'. Use 'anthropic', 'ollama', 'gemini', 'openai', 'grok', or 'mistral'."
+    if [[ "$ZSH_AI_PROVIDER" != "anthropic" ]] && [[ "$ZSH_AI_PROVIDER" != "ollama" ]] && [[ "$ZSH_AI_PROVIDER" != "gemini" ]] && [[ "$ZSH_AI_PROVIDER" != "openai" ]] && [[ "$ZSH_AI_PROVIDER" != "grok" ]] && [[ "$ZSH_AI_PROVIDER" != "mistral" ]] && [[ "$ZSH_AI_PROVIDER" != "claude-code" ]]; then
+        echo "zsh-ai: Error: Invalid provider '$ZSH_AI_PROVIDER'. Use 'anthropic', 'ollama', 'gemini', 'openai', 'grok', 'mistral', or 'claude-code'."
         return 1
     fi
 

@@ -41,6 +41,14 @@ _zsh_ai_query() {
         _zsh_ai_query_grok "$query"
     elif [[ "$ZSH_AI_PROVIDER" == "mistral" ]]; then
         _zsh_ai_query_mistral "$query"
+    elif [[ "$ZSH_AI_PROVIDER" == "claude-code" ]]; then
+        # Check if claude CLI is available first
+        if ! _zsh_ai_check_claude_code; then
+            echo "Error: claude CLI not found"
+            echo "Install Claude Code: https://docs.anthropic.com/en/docs/claude-code"
+            return 1
+        fi
+        _zsh_ai_query_claude_code "$query"
     else
         _zsh_ai_query_anthropic "$query"
     fi
@@ -78,6 +86,8 @@ zsh-ai() {
             echo "Grok model: $ZSH_AI_GROK_MODEL"
         elif [[ "$ZSH_AI_PROVIDER" == "mistral" ]]; then
             echo "Mistral model: $ZSH_AI_MISTRAL_MODEL"
+        elif [[ "$ZSH_AI_PROVIDER" == "claude-code" ]]; then
+            echo "Claude Code model: $ZSH_AI_CLAUDE_CODE_MODEL"
         fi
         return 1
     fi

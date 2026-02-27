@@ -1,7 +1,7 @@
 #!/usr/bin/env zsh
 
 # zsh-ai - AI-powered command suggestions for zsh
-# Supports Anthropic Claude, Google Gemini, OpenAI, Mistral AI, and local Ollama models
+# Supports Anthropic Claude, Google Gemini, OpenAI, Mistral AI, local Ollama models, and Claude Code CLI
 
 # Get the directory where this plugin is installed
 local plugin_dir="${0:A:h}"
@@ -15,6 +15,7 @@ source "${plugin_dir}/lib/providers/gemini.zsh"
 source "${plugin_dir}/lib/providers/openai.zsh"
 source "${plugin_dir}/lib/providers/grok.zsh"
 source "${plugin_dir}/lib/providers/mistral.zsh"
+source "${plugin_dir}/lib/providers/claude-code.zsh"
 source "${plugin_dir}/lib/utils.zsh"
 source "${plugin_dir}/lib/widget.zsh"
 

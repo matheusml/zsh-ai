@@ -79,6 +79,15 @@ test_validates_openai_provider() {
     teardown_test_env
 }
 
+test_validates_claude_code_provider() {
+    setup_test_env
+    export ZSH_AI_PROVIDER="claude-code"
+    _zsh_ai_validate_config >/dev/null 2>&1
+    local result=$?
+    assert_equals "$result" "0"
+    teardown_test_env
+}
+
 # Run tests
 echo "Running config tests..."
 test_default_provider && echo "✓ Default provider is anthropic"
@@ -89,3 +98,4 @@ test_validates_ollama_provider && echo "✓ Validates ollama provider"
 test_rejects_invalid_provider && echo "✓ Rejects invalid provider"
 test_validates_gemini_provider && echo "✓ Validates gemini provider"
 test_validates_openai_provider && echo "✓ Validates openai provider"
+test_validates_claude_code_provider && echo "✓ Validates claude-code provider"
