@@ -78,6 +78,23 @@ test_handles_cli_failure() {
     teardown_test_env
 }
 
+test_surfaces_cli_error_output() {
+    setup_test_env
+    export ZSH_AI_CLAUDE_CODE_MODEL="claude-haiku-4-5"
+
+    # Mock claude CLI failure with error message (e.g. auth failure)
+    mock_command "claude" "Not authenticated. Run claude login." 1
+
+    local output
+    output=$(_zsh_ai_query_claude_code "test query")
+    local result=$?
+
+    assert_equals "$result" "1"
+    assert_contains "$output" "Not authenticated"
+
+    teardown_test_env
+}
+
 test_handles_empty_response() {
     setup_test_env
     export ZSH_AI_CLAUDE_CODE_MODEL="claude-haiku-4-5"
@@ -99,9 +116,9 @@ test_strips_markdown_code_fences() {
     setup_test_env
     export ZSH_AI_CLAUDE_CODE_MODEL="claude-haiku-4-5"
 
-    # Mock claude CLI returning response with markdown fences
+    # Mock claude CLI returning response wrapped in markdown fences
     claude() {
-        printf "git status"
+        printf '%s\n' '```sh' 'git status' '```'
         return 0
     }
 
@@ -199,6 +216,7 @@ test_check_claude_code_installed_success && echo "✓ Check if claude CLI is ins
 test_check_claude_code_installed_failure && echo "✓ Check if claude CLI is installed - failure"
 test_successful_query && echo "✓ Successful query"
 test_handles_cli_failure && echo "✓ Handles CLI failure"
+test_surfaces_cli_error_output && echo "✓ Surfaces CLI error output"
 test_handles_empty_response && echo "✓ Handles empty response"
 test_strips_markdown_code_fences && echo "✓ Strips markdown code fences"
 test_removes_trailing_whitespace && echo "✓ Removes trailing whitespace"

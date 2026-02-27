@@ -28,9 +28,14 @@ _zsh_ai_query_claude_code() {
 
     # Call claude CLI
     response=$("${cmd_args[@]}" 2>&1)
+    local exit_code=$?
 
-    if [[ $? -ne 0 ]]; then
-        echo "Error: Failed to run claude CLI"
+    if [[ $exit_code -ne 0 ]]; then
+        if [[ -n "$response" ]]; then
+            echo "Error: claude CLI failed: $response"
+        else
+            echo "Error: Failed to run claude CLI (exit code $exit_code)"
+        fi
         return 1
     fi
 
