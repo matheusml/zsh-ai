@@ -32,7 +32,7 @@ EOF
 
 test_qwen_query_success() {
     export QWEN_API_KEY="test-key"
-    export ZSH_AI_QWEN_MODEL="qwen3-max"
+    export ZSH_AI_QWEN_MODEL="qwen-plus"
 
     local result=$(_zsh_ai_query_qwen "list files")
     assert_equals "$result" "ls -la"
@@ -40,7 +40,7 @@ test_qwen_query_success() {
 
 test_qwen_query_error_response() {
     export QWEN_API_KEY="test-key"
-    export ZSH_AI_QWEN_MODEL="qwen3-max"
+    export ZSH_AI_QWEN_MODEL="qwen-plus"
 
     # Override curl to return an error
     curl() {
@@ -63,7 +63,7 @@ EOF
 
 test_qwen_json_escaping() {
     export QWEN_API_KEY="test-key"
-    export ZSH_AI_QWEN_MODEL="qwen3-max"
+    export ZSH_AI_QWEN_MODEL="qwen-plus"
 
     # Test with special characters
     local result=$(_zsh_ai_query_qwen "test \"quotes\" and \$variables")
@@ -73,7 +73,7 @@ test_qwen_json_escaping() {
 
 test_handles_response_with_newline() {
     export QWEN_API_KEY="test-key"
-    export ZSH_AI_QWEN_MODEL="qwen3-max"
+    export ZSH_AI_QWEN_MODEL="qwen-plus"
 
     # Override curl to return response with newline
     curl() {
@@ -100,7 +100,7 @@ EOF
 
 test_handles_response_without_jq() {
     export QWEN_API_KEY="test-key"
-    export ZSH_AI_QWEN_MODEL="qwen3-max"
+    export ZSH_AI_QWEN_MODEL="qwen-plus"
 
     # Mock jq as unavailable
     command() {
@@ -125,7 +125,7 @@ test_handles_response_without_jq() {
 
 test_uses_configurable_api_url() {
     export QWEN_API_KEY="test-key"
-    export ZSH_AI_QWEN_MODEL="qwen3-max"
+    export ZSH_AI_QWEN_MODEL="qwen-plus"
     export ZSH_AI_QWEN_URL="https://custom.qwen.api/v1/chat/completions"
 
     # Override curl to check the custom URL is used
@@ -146,7 +146,7 @@ test_uses_configurable_api_url() {
 
 test_uses_max_tokens() {
     export QWEN_API_KEY="test-key"
-    export ZSH_AI_QWEN_MODEL="qwen3-max"
+    export ZSH_AI_QWEN_MODEL="qwen-plus"
     local payload_file=$(mktemp)
 
     curl() {
@@ -173,7 +173,7 @@ test_uses_max_tokens() {
 
 test_uses_qwen_api_key() {
     export QWEN_API_KEY="test-secret-key"
-    export ZSH_AI_QWEN_MODEL="qwen3-max"
+    export ZSH_AI_QWEN_MODEL="qwen-plus"
     local curl_args_file=$(mktemp)
 
     curl() {

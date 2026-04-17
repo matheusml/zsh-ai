@@ -7,9 +7,9 @@
 : ${ZSH_AI_OLLAMA_MODEL:="llama3.2"}  # Popular fast model
 : ${ZSH_AI_OLLAMA_URL:="http://localhost:11434"}  # Default Ollama URL
 : ${ZSH_AI_GEMINI_MODEL:="gemini-2.5-flash"}  # Fast Gemini 2.5 model
-: ${ZSH_AI_OPENAI_MODEL:="gpt-4o"}  # Default to GPT-4o
+: ${ZSH_AI_OPENAI_MODEL:="gpt-5-mini"}  # Default to GPT-5 mini
 : ${ZSH_AI_OPENAI_URL:="https://api.openai.com/v1/chat/completions"}  # Default to OpenAI
-: ${ZSH_AI_QWEN_MODEL:="qwen3-max"}  # Default to qwen3-max
+: ${ZSH_AI_QWEN_MODEL:="qwen-plus"}  # Default to qwen-plus
 : ${ZSH_AI_QWEN_URL:="https://dashscope.aliyuncs.com/compatible-mode/v1/chat/completions"}  # Default to Qwen API
 : ${ZSH_AI_ANTHROPIC_MODEL:="claude-haiku-4-5"}  # Default Anthropic model
 : ${ZSH_AI_ANTHROPIC_URL:="https://api.anthropic.com/v1/messages"}  # Default Anthropic URL

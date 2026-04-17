@@ -188,7 +188,7 @@ export ZSH_AI_ANTHROPIC_MODEL="claude-haiku-4-5"
 export ZSH_AI_ANTHROPIC_URL="https://api.anthropic.com/v1/messages"
 
 # OpenAI
-export ZSH_AI_OPENAI_MODEL="gpt-4o"
+export ZSH_AI_OPENAI_MODEL="gpt-5-mini"
 export ZSH_AI_OPENAI_URL="https://api.openai.com/v1/chat/completions"
 export ZSH_AI_OPENAI_API_KEY=""  # Optional: override OPENAI_API_KEY for proxies
 
@@ -208,7 +208,7 @@ export ZSH_AI_GROK_MODEL="grok-4-1-fast-non-reasoning"
 export ZSH_AI_GROK_URL="https://api.x.ai/v1/chat/completions"
 
 # Qwen
-export ZSH_AI_QWEN_MODEL="qwen3-max"
+export ZSH_AI_QWEN_MODEL="qwen-plus"
 export ZSH_AI_QWEN_URL="https://dashscope.aliyuncs.com/compatible-mode/v1/chat/completions"
 ```
 
