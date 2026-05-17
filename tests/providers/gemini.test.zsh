@@ -14,10 +14,17 @@ source "$PLUGIN_DIR/lib/providers/gemini.zsh"
 test_default_model_configuration() {
     setup_test_env
     
+    # Save the original env var and unset it so we test the default
+    local orig_model="$ZSH_AI_GEMINI_MODEL"
+    unset ZSH_AI_GEMINI_MODEL
+    
     # Source config to get default values
     source "$PLUGIN_DIR/lib/config.zsh"
     
-    assert_equals "$ZSH_AI_GEMINI_MODEL" "gemini-2.0-flash"
+    assert_equals "$ZSH_AI_GEMINI_MODEL" "gemini-2.5-flash"
+    
+    # Restore the original env var
+    export ZSH_AI_GEMINI_MODEL="$orig_model"
     
     teardown_test_env
 }
@@ -80,6 +87,75 @@ test_gemini_query_function_exists() {
     fi
     
     assert_equals "$result" "0"
+    
+    teardown_test_env
+}
+
+test_routes_queries_to_ai_studio_by_default() {
+    setup_test_env
+    export GEMINI_API_KEY="test-api-key"
+    export ZSH_AI_GEMINI_MODEL="gemini-2.5-flash"
+    unset GEMINI_CLOUD_PROJECT
+    unset GEMINI_CLOUD_REGION
+    
+    # Mock jq as available
+    mock_jq "true"
+    
+    # Mock successful curl response
+    local mock_response='{"candidates":[{"content":{"parts":[{"text":"git status"}]}}]}'
+    mock_curl_response "$mock_response" 0
+    
+    _zsh_ai_query_gemini "show git status" > /dev/null
+    
+    local curl_args=$(cat "$MOCK_CURL_ARGS_FILE")
+    assert_contains "$curl_args" "https://generativelanguage.googleapis.com/v1beta/models/gemini-2.5-flash:generateContent"
+    assert_contains "$curl_args" "x-goog-api-key: test-api-key"
+    
+    teardown_test_env
+}
+
+test_routes_queries_to_vertex_ai_global() {
+    setup_test_env
+    export GEMINI_API_KEY="test-api-key"
+    export GEMINI_CLOUD_PROJECT="my-project"
+    export ZSH_AI_GEMINI_MODEL="gemini-2.5-flash"
+    unset GEMINI_CLOUD_REGION
+    
+    # Mock jq as available
+    mock_jq "true"
+    
+    # Mock successful curl response
+    local mock_response='{"candidates":[{"content":{"parts":[{"text":"git status"}]}}]}'
+    mock_curl_response "$mock_response" 0
+    
+    _zsh_ai_query_gemini "show git status" > /dev/null
+    
+    local curl_args=$(cat "$MOCK_CURL_ARGS_FILE")
+    assert_contains "$curl_args" "https://aiplatform.googleapis.com/v1/projects/my-project/locations/global/publishers/google/models/gemini-2.5-flash:generateContent"
+    assert_contains "$curl_args" "x-goog-api-key: test-api-key"
+    
+    teardown_test_env
+}
+
+test_routes_queries_to_vertex_ai_regional() {
+    setup_test_env
+    export GEMINI_API_KEY="test-api-key"
+    export GEMINI_CLOUD_PROJECT="my-project"
+    export GEMINI_CLOUD_REGION="us-central1"
+    export ZSH_AI_GEMINI_MODEL="gemini-2.5-flash"
+    
+    # Mock jq as available
+    mock_jq "true"
+    
+    # Mock successful curl response
+    local mock_response='{"candidates":[{"content":{"parts":[{"text":"git status"}]}}]}'
+    mock_curl_response "$mock_response" 0
+    
+    _zsh_ai_query_gemini "show git status" > /dev/null
+    
+    local curl_args=$(cat "$MOCK_CURL_ARGS_FILE")
+    assert_contains "$curl_args" "https://us-central1-aiplatform.googleapis.com/v1/projects/my-project/locations/us-central1/publishers/google/models/gemini-2.5-flash:generateContent"
+    assert_contains "$curl_args" "x-goog-api-key: test-api-key"
     
     teardown_test_env
 }
@@ -159,7 +235,7 @@ test_handles_curl_connection_failure() {
     local result=$?
     
     assert_equals "$result" "1"
-    assert_contains "$output" "Failed to connect to Google AI API"
+    assert_contains "$output" "Failed to connect to Gemini API"
     
     teardown_test_env
 }
@@ -234,6 +310,9 @@ test_validation_fails_without_api_key && echo "✓ Validation fails without API 
 test_validation_succeeds_with_api_key && echo "✓ Validation succeeds with API key"
 test_routes_queries_to_gemini_provider && echo "✓ Routes queries to gemini provider"
 test_gemini_query_function_exists && echo "✓ Gemini query function exists"
+test_routes_queries_to_ai_studio_by_default && echo "✓ Routes queries to AI Studio by default"
+test_routes_queries_to_vertex_ai_global && echo "✓ Routes queries to Vertex AI (Global)"
+test_routes_queries_to_vertex_ai_regional && echo "✓ Routes queries to Vertex AI (Regional)"
 test_successful_api_call_with_jq && echo "✓ Successful API call with jq available"
 test_successful_api_call_without_jq && echo "✓ Successful API call without jq"
 test_handles_api_error_response && echo "✓ Handles API error response"

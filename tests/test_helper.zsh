@@ -69,15 +69,19 @@ mock_curl_response() {
     local exit_code="${2:-0}"
     
     # Store response and exit code in global variables
-    MOCK_CURL_RESPONSE="$response"
-    MOCK_CURL_EXIT_CODE="$exit_code"
+    export MOCK_CURL_RESPONSE="$response"
+    export MOCK_CURL_EXIT_CODE="$exit_code"
+    export MOCK_CURL_ARGS_FILE=$(mktemp)
     
     # Create a global curl function
     function curl() {
+        # Log arguments to file since this might be run in a subshell
+        print -r -- "$@" > "$MOCK_CURL_ARGS_FILE"
+
         if [[ "$MOCK_CURL_EXIT_CODE" -ne 0 ]]; then
             return "$MOCK_CURL_EXIT_CODE"
         fi
-        echo "$MOCK_CURL_RESPONSE"
+        print -r -- "$MOCK_CURL_RESPONSE"
         return 0
     }
 }
@@ -122,7 +126,7 @@ mock_jq() {
                 result=$(echo "$input" | perl -0777 -ne 'if (/"response":\s*"([^"\\]*(\\.[^"\\]*)*)"/) { $val = $1; $val =~ s/\\n/\n/g; $val =~ s/\\"/"/g; print $val; }')
             elif [[ "$args" == *".candidates[0].content.parts[0].text"* ]]; then
                 # For Gemini responses
-                result=$(echo "$input" | grep -o '"text":"[^"]*"' | head -1 | sed 's/"text":"\([^"]*\)"/\1/')
+                result=$(print -r -- "$input" | grep -o '"text":"[^"]*"' | head -1 | sed 's/"text":"\([^"]*\)"/\1/')
             fi
             
             # Return result or empty based on // empty handling
@@ -159,6 +163,10 @@ setup_test_env() {
 # Teardown test environment
 teardown_test_env() {
     reset_mocks
+    # Clean up curl mock temp file if it exists
+    if [[ -n "$MOCK_CURL_ARGS_FILE" && -f "$MOCK_CURL_ARGS_FILE" ]]; then
+        rm -f "$MOCK_CURL_ARGS_FILE"
+    fi
     # Unfunction any mocked commands
     unfunction command 2>/dev/null
     unfunction jq 2>/dev/null

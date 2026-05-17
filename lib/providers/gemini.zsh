@@ -45,8 +45,28 @@ _zsh_ai_query_gemini() {
 EOF
 )
     
+    # Determine the endpoint based on project and region variables
+    local endpoint
+    if [[ -z "${GEMINI_CLOUD_PROJECT}" ]]; then
+        # Google AI Studio Fallback
+        endpoint="https://generativelanguage.googleapis.com/v1beta/models/${ZSH_AI_GEMINI_MODEL}:generateContent"
+    else
+        # Vertex AI Routing
+        local domain
+        local location
+        if [[ -z "${GEMINI_CLOUD_REGION}" || "${GEMINI_CLOUD_REGION}" == "global" ]]; then
+            location="global"
+            domain="https://aiplatform.googleapis.com"
+        else
+            location="${GEMINI_CLOUD_REGION}"
+            domain="https://${GEMINI_CLOUD_REGION}-aiplatform.googleapis.com"
+        fi
+        endpoint="${domain}/v1/projects/${GEMINI_CLOUD_PROJECT}/locations/${location}/publishers/google/models/${ZSH_AI_GEMINI_MODEL}:generateContent"
+    fi
+
     # Call the API
-    response=$(curl -s "https://generativelanguage.googleapis.com/v1beta/models/${ZSH_AI_GEMINI_MODEL}:generateContent?key=${GEMINI_API_KEY}" \
+    response=$(curl -s "$endpoint" \
+        --header "x-goog-api-key: ${GEMINI_API_KEY}" \
         --header "content-type: application/json" \
         --data "$json_payload" 2>&1)
     
