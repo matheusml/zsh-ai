@@ -2,6 +2,13 @@
 
 # OpenAI API provider for zsh-ai
 
+_zsh_ai_openai_supports_temperature() {
+    local model="$1"
+
+    # These OpenAI reasoning models reject non-default temperature values.
+    [[ "$model" != gpt-5* && "$model" != o1* && "$model" != o3* && "$model" != o4* ]]
+}
+
 # Function to call OpenAI API
 _zsh_ai_query_openai() {
     local query="$1"
@@ -22,6 +29,11 @@ _zsh_ai_query_openai() {
         token_param="max_tokens"
     fi
 
+    local temperature_param=""
+    if _zsh_ai_openai_supports_temperature "$ZSH_AI_OPENAI_MODEL"; then
+        temperature_param=$',\n    "temperature": 0.3'
+    fi
+
     local json_payload=$(cat <<EOF
 {
     "model": "${ZSH_AI_OPENAI_MODEL}",
@@ -35,8 +47,7 @@ _zsh_ai_query_openai() {
             "content": "$escaped_query"
         }
     ],
-    "$token_param": 256,
-    "temperature": 0.3
+    "$token_param": 256${temperature_param}
 }
 EOF
 )

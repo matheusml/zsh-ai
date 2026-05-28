@@ -148,9 +148,10 @@ test_uses_perplexity_url() {
     assert_equals "$ZSH_AI_OPENAI_URL" "https://api.perplexity.ai/chat/completions"
 }
 
-test_uses_max_tokens_for_gpt4_models() {
+capture_openai_payload_for_model() {
+    local model="$1"
     export OPENAI_API_KEY="test-key"
-    export ZSH_AI_OPENAI_MODEL="gpt-5-mini"
+    export ZSH_AI_OPENAI_MODEL="$model"
     export ZSH_AI_OPENAI_URL="https://api.openai.com/v1/chat/completions"
     local payload_file=$(mktemp)
 
@@ -173,91 +174,37 @@ test_uses_max_tokens_for_gpt4_models() {
     _zsh_ai_query_openai "test" >/dev/null
     local captured_payload=$(cat "$payload_file")
     rm -f "$payload_file"
+    printf "%s" "$captured_payload"
+}
+
+test_uses_max_tokens_for_gpt4_models() {
+    local captured_payload=$(capture_openai_payload_for_model "gpt-4o-mini")
     assert_contains "$captured_payload" '"max_tokens"'
 }
 
 test_uses_max_tokens_for_gpt35_models() {
-    export OPENAI_API_KEY="test-key"
-    export ZSH_AI_OPENAI_MODEL="gpt-3.5-turbo"
-    export ZSH_AI_OPENAI_URL="https://api.openai.com/v1/chat/completions"
-    local payload_file=$(mktemp)
-
-    curl() {
-        if [[ "$*" == *"https://api.openai.com/v1/chat/completions"* ]]; then
-            local prev_arg=""
-            for arg in "$@"; do
-                if [[ "$prev_arg" == "--data" ]]; then
-                    echo "$arg" > "$payload_file"
-                    break
-                fi
-                prev_arg="$arg"
-            done
-            echo '{"choices":[{"message":{"content":"test"}}]}'
-            return 0
-        fi
-        command curl "$@"
-    }
-
-    _zsh_ai_query_openai "test" >/dev/null
-    local captured_payload=$(cat "$payload_file")
-    rm -f "$payload_file"
+    local captured_payload=$(capture_openai_payload_for_model "gpt-3.5-turbo")
     assert_contains "$captured_payload" '"max_tokens"'
 }
 
 test_uses_max_completion_tokens_for_gpt5_models() {
-    export OPENAI_API_KEY="test-key"
-    export ZSH_AI_OPENAI_MODEL="gpt-5-nano"
-    export ZSH_AI_OPENAI_URL="https://api.openai.com/v1/chat/completions"
-    local payload_file=$(mktemp)
-
-    curl() {
-        if [[ "$*" == *"https://api.openai.com/v1/chat/completions"* ]]; then
-            local prev_arg=""
-            for arg in "$@"; do
-                if [[ "$prev_arg" == "--data" ]]; then
-                    echo "$arg" > "$payload_file"
-                    break
-                fi
-                prev_arg="$arg"
-            done
-            echo '{"choices":[{"message":{"content":"test"}}]}'
-            return 0
-        fi
-        command curl "$@"
-    }
-
-    _zsh_ai_query_openai "test" >/dev/null
-    local captured_payload=$(cat "$payload_file")
-    rm -f "$payload_file"
+    local captured_payload=$(capture_openai_payload_for_model "gpt-5-nano")
     assert_contains "$captured_payload" '"max_completion_tokens"'
 }
 
 test_uses_max_completion_tokens_for_o1_models() {
-    export OPENAI_API_KEY="test-key"
-    export ZSH_AI_OPENAI_MODEL="o1-preview"
-    export ZSH_AI_OPENAI_URL="https://api.openai.com/v1/chat/completions"
-    local payload_file=$(mktemp)
-
-    curl() {
-        if [[ "$*" == *"https://api.openai.com/v1/chat/completions"* ]]; then
-            local prev_arg=""
-            for arg in "$@"; do
-                if [[ "$prev_arg" == "--data" ]]; then
-                    echo "$arg" > "$payload_file"
-                    break
-                fi
-                prev_arg="$arg"
-            done
-            echo '{"choices":[{"message":{"content":"test"}}]}'
-            return 0
-        fi
-        command curl "$@"
-    }
-
-    _zsh_ai_query_openai "test" >/dev/null
-    local captured_payload=$(cat "$payload_file")
-    rm -f "$payload_file"
+    local captured_payload=$(capture_openai_payload_for_model "o1-preview")
     assert_contains "$captured_payload" '"max_completion_tokens"'
+}
+
+test_omits_temperature_for_gpt5_models() {
+    local captured_payload=$(capture_openai_payload_for_model "gpt-5-mini")
+    assert_not_contains "$captured_payload" '"temperature"'
+}
+
+test_includes_temperature_for_gpt4_models() {
+    local captured_payload=$(capture_openai_payload_for_model "gpt-4o-mini")
+    assert_contains "$captured_payload" '"temperature": 0.3'
 }
 
 # Add missing assert_not_empty function
@@ -279,6 +226,8 @@ test_uses_max_tokens_for_gpt4_models && echo "✓ Uses max_tokens for gpt-4 mode
 test_uses_max_tokens_for_gpt35_models && echo "✓ Uses max_tokens for gpt-3.5 models"
 test_uses_max_completion_tokens_for_gpt5_models && echo "✓ Uses max_completion_tokens for gpt-5 models"
 test_uses_max_completion_tokens_for_o1_models && echo "✓ Uses max_completion_tokens for o1 models"
+test_omits_temperature_for_gpt5_models && echo "✓ Omits temperature for gpt-5 models"
+test_includes_temperature_for_gpt4_models && echo "✓ Includes temperature for gpt-4 models"
 
 # Tests for keyless OpenAI-compatible endpoints
 echo ""
@@ -291,7 +240,8 @@ test_openai_requires_key_for_default_url() {
     # Explicitly set to default URL to ensure test works
     export ZSH_AI_OPENAI_URL="https://api.openai.com/v1/chat/completions"
 
-    local result=$(_zsh_ai_validate_config 2>&1)
+    local result
+    result=$(_zsh_ai_validate_config 2>&1)
     local exit_code=$?
 
     assert_equals "$exit_code" "1"
@@ -304,7 +254,8 @@ test_openai_works_without_key_for_custom_url() {
     export ZSH_AI_PROVIDER="openai"
     export ZSH_AI_OPENAI_URL="http://localhost:8080/v1/chat/completions"
 
-    local result=$(_zsh_ai_validate_config 2>&1)
+    local result
+    result=$(_zsh_ai_validate_config 2>&1)
     local exit_code=$?
 
     # Should pass validation without API key
@@ -376,7 +327,8 @@ test_openai_zsh_ai_key_passes_validation_for_default_url() {
     export ZSH_AI_PROVIDER="openai"
     export ZSH_AI_OPENAI_URL="https://api.openai.com/v1/chat/completions"
 
-    local result=$(_zsh_ai_validate_config 2>&1)
+    local result
+    result=$(_zsh_ai_validate_config 2>&1)
     local exit_code=$?
 
     # Should pass validation since ZSH_AI_OPENAI_API_KEY is set
