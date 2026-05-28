@@ -52,14 +52,37 @@ export ZSH_AI_PROVIDER="openai"
 
 [Get your API key →](https://platform.openai.com/api-keys)
 
-### Google Gemini
+### Google Gemini / Vertex AI
+
+You can use either Google AI Studio (default) or Google Cloud Vertex AI.
+
+**For Google AI Studio:**
 
 ```bash
 export GEMINI_API_KEY="your-api-key-here"
 export ZSH_AI_PROVIDER="gemini"
 ```
 
-[Get your API key →](https://makersuite.google.com/app/apikey)
+[Get your API key →](https://aistudio.google.com/app/apikey)
+
+**For Vertex AI:**
+
+If you are using Vertex AI, you need to provide your Google Cloud Project ID using `GEMINI_` prefixed variables.
+
+```bash
+export GEMINI_API_KEY="your-gcp-api-key-here" # Must have Vertex AI permissions
+export GEMINI_CLOUD_PROJECT="my-awesome-project"
+export ZSH_AI_PROVIDER="gemini"
+
+# (Optional) Set the region if you don't want to use the default "global" routing:
+# export GEMINI_CLOUD_REGION="us-central1" 
+```
+
+*If you already have standard Google Cloud CLI environment variables set up, you can simply map them over in your `~/.zshrc`:*
+```bash
+export GEMINI_CLOUD_PROJECT=$GOOGLE_CLOUD_PROJECT
+export GEMINI_CLOUD_REGION=$GOOGLE_CLOUD_REGION
+```
 
 ### Ollama (Local & Free)
 
@@ -192,8 +215,10 @@ export ZSH_AI_OPENAI_MODEL="gpt-5-mini"
 export ZSH_AI_OPENAI_URL="https://api.openai.com/v1/chat/completions"
 export ZSH_AI_OPENAI_API_KEY=""  # Optional: override OPENAI_API_KEY for proxies
 
-# Gemini
+# Gemini / Vertex AI
 export ZSH_AI_GEMINI_MODEL="gemini-2.5-flash"
+export GEMINI_CLOUD_PROJECT="" # Optional: Set to use Vertex AI
+export GEMINI_CLOUD_REGION="" # Optional: Vertex AI region (defaults to global)
 
 # Ollama
 export ZSH_AI_OLLAMA_MODEL="llama3.2"
