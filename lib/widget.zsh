@@ -44,9 +44,12 @@ _zsh_ai_accept_line() {
             zle -R && sleep 0.1
         done
         
+        # Reap the background job so it doesn't linger in the job table
+        wait $pid 2>/dev/null
+        local exit_code=$?
+
         # Get the response
         local cmd=$(cat "$tmpfile")
-        local exit_code=$?
         rm -f "$tmpfile"
         
         if [[ -n "$cmd" ]] && [[ "$cmd" != "Error:"* ]] && [[ "$cmd" != "API Error:"* ]]; then
