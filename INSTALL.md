@@ -2,6 +2,8 @@
 
 Use Homebrew if you can. The other methods are for plugin managers and source installs.
 
+Install the plugin files first, then choose a provider, then load `zsh-ai`. Provider exports must appear before the line that loads the plugin. Keep API keys out of public dotfiles.
+
 ## Install Method
 
 ### Homebrew
@@ -9,7 +11,6 @@ Use Homebrew if you can. The other methods are for plugin managers and source in
 ```bash
 brew tap matheusml/zsh-ai
 brew install zsh-ai
-echo 'source $(brew --prefix)/share/zsh-ai/zsh-ai.plugin.zsh' >> ~/.zshrc
 ```
 
 ### Oh My Zsh
@@ -18,13 +19,15 @@ echo 'source $(brew --prefix)/share/zsh-ai/zsh-ai.plugin.zsh' >> ~/.zshrc
 git clone https://github.com/matheusml/zsh-ai ${ZSH_CUSTOM:-~/.oh-my-zsh/custom}/plugins/zsh-ai
 ```
 
-Add it to `plugins` in `~/.zshrc`:
+Add it to `plugins` later in `~/.zshrc`, after choosing a provider below:
 
 ```bash
 plugins=(zsh-ai)
 ```
 
 ### Antigen
+
+Add this later in `~/.zshrc`, after choosing a provider below and before `antigen apply`:
 
 ```bash
 antigen bundle matheusml/zsh-ai
@@ -34,12 +37,11 @@ antigen bundle matheusml/zsh-ai
 
 ```bash
 git clone https://github.com/matheusml/zsh-ai ~/.zsh-ai
-echo 'source ~/.zsh-ai/zsh-ai.plugin.zsh' >> ~/.zshrc
 ```
 
 ## Providers
 
-Add one provider block to `~/.zshrc`.
+Add one provider block to `~/.zshrc` before `zsh-ai` loads.
 
 ### Anthropic Claude
 
@@ -53,7 +55,7 @@ Key: [Anthropic Console](https://console.anthropic.com/account/keys)
 
 ### Ollama
 
-Local and private.
+Private when running on your own machine.
 
 ```bash
 ollama pull llama3.2
@@ -117,6 +119,8 @@ export ZSH_AI_OPENAI_URL="http://localhost:8080/v1/chat/completions"
 export ZSH_AI_OPENAI_MODEL="your-model-name"
 ```
 
+Use `http://` only for local endpoints. Use HTTPS for remote proxies or providers.
+
 For proxies with their own key:
 
 ```bash
@@ -124,6 +128,24 @@ export ZSH_AI_OPENAI_API_KEY="sk-your-proxy-key"
 ```
 
 `ZSH_AI_OPENAI_API_KEY` takes priority over `OPENAI_API_KEY`.
+
+## Load zsh-ai
+
+Put the load line after your provider block in `~/.zshrc`.
+
+Homebrew:
+
+```bash
+source $(brew --prefix)/share/zsh-ai/zsh-ai.plugin.zsh
+```
+
+Manual install:
+
+```bash
+source ~/.zsh-ai/zsh-ai.plugin.zsh
+```
+
+Oh My Zsh users should keep the provider block above the line that loads Oh My Zsh. Antigen users should keep it above `antigen bundle matheusml/zsh-ai`.
 
 ## Verify
 
@@ -175,6 +197,7 @@ export ZSH_AI_PROMPT_EXTEND="Prefer rg over grep, fd over find, and bat over cat
 
 - zsh 5.0+
 - curl
+- perl
 - jq, optional
 
 Install `jq` if JSON parsing fails:

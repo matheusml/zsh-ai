@@ -21,17 +21,27 @@ Most command help breaks your flow: search result, forum thread, copied snippet,
 
 `zsh-ai` stays on the command line. It sends useful context with your request, including project type, nearby files, git state, and OS. That means "run tests" can become the right command for the directory you are already in.
 
-It is also small by design: zsh code, no Node runtime, no Python runtime. `jq` is optional.
+It is also small by design: zsh plus `curl` and `perl`, no Node runtime, no Python runtime. `jq` is optional.
 
 ## Install
 
 ```bash
 brew tap matheusml/zsh-ai
 brew install zsh-ai
+```
 
-echo 'source $(brew --prefix)/share/zsh-ai/zsh-ai.plugin.zsh' >> ~/.zshrc
-echo 'export ANTHROPIC_API_KEY="your-key-here"' >> ~/.zshrc
+Add this to `~/.zshrc`, with the API key above the `source` line:
 
+```bash
+export ANTHROPIC_API_KEY="your-key-here"
+source $(brew --prefix)/share/zsh-ai/zsh-ai.plugin.zsh
+```
+
+Keep API keys out of public dotfiles.
+
+Reload your shell:
+
+```bash
 source ~/.zshrc
 ```
 
@@ -41,12 +51,14 @@ Then try:
 # summarize disk usage for this folder
 ```
 
-Prefer local models?
+Prefer a local model on your machine?
 
 ```bash
 ollama pull llama3.2
-echo 'export ZSH_AI_PROVIDER="ollama"' >> ~/.zshrc
+export ZSH_AI_PROVIDER="ollama"
 ```
+
+Put the Ollama provider line above the `zsh-ai` source line.
 
 Full setup lives in [INSTALL.md](INSTALL.md).
 
@@ -59,8 +71,8 @@ Type `#`, describe the job, then press Enter.
 <img src="https://github.com/user-attachments/assets/eff46629-855c-41eb-9de3-a53040bd2654" alt="zsh-ai comment syntax demo" width="520">
 
 ```bash
-$ # kill whatever is using port 3000
-$ lsof -ti:3000 | xargs kill -9
+$ # show what is using port 3000
+$ lsof -i :3000
 
 $ # show commits on this branch that are not on main
 $ git log main..HEAD --oneline

@@ -18,6 +18,8 @@ Set the key for your provider:
 export ANTHROPIC_API_KEY="your-key"
 ```
 
+For permanent setup, put the key above the `zsh-ai` load line in a private `~/.zshrc`.
+
 Or switch to Ollama:
 
 ```bash
