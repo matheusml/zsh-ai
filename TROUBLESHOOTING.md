@@ -1,39 +1,78 @@
 # Troubleshooting
 
-## Common Issues
+Start with the direct command so errors are easy to see:
 
-### API Key not found
+```bash
+zsh-ai "show current date"
+```
+
+## API Key Missing
+
 ```bash
 zsh-ai: Warning: ANTHROPIC_API_KEY not set. Plugin will not function.
 ```
-**Solution:** Either set your API key or switch to Ollama:
-```bash
-# Option 1: Set Anthropic API key
-export ANTHROPIC_API_KEY="your-key"
 
-# Option 2: Use Ollama instead
+Set the key for your provider:
+
+```bash
+export ANTHROPIC_API_KEY="your-key"
+```
+
+Or switch to Ollama:
+
+```bash
 export ZSH_AI_PROVIDER="ollama"
 ```
 
-### Ollama not running
+## Ollama Is Not Running
+
 ```bash
 Error: Ollama is not running at http://localhost:11434
 ```
-**Solution:** Start Ollama with `ollama serve`
 
-### JSON parsing errors
-Install `jq` for better reliability:
 ```bash
-# macOS
-brew install jq
+ollama serve
+ollama pull llama3.2
+```
 
-# Ubuntu/Debian
+## Nothing Happens With `#`
+
+Reload your shell config:
+
+```bash
+source ~/.zshrc
+```
+
+Then test the explicit command:
+
+```bash
+zsh-ai "list files"
+```
+
+If that works, restart your terminal so the zle widget binding reloads.
+
+## JSON Parse Errors
+
+Install `jq`:
+
+```bash
+brew install jq
+```
+
+Ubuntu or Debian:
+
+```bash
 sudo apt-get install jq
 ```
 
-## Need More Help?
+## Still Stuck
 
-If you're still experiencing issues:
-1. Check that you have the latest version of zsh-ai
-2. Verify your API keys are correct
-3. [Open an issue](https://github.com/matheusml/zsh-ai/issues) with details about your setup
+Check the active provider and model:
+
+```bash
+zsh-ai
+```
+
+Then open an issue with your OS, zsh version, provider, install method, and exact error:
+
+https://github.com/matheusml/zsh-ai/issues
