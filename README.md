@@ -80,6 +80,8 @@ $ git log main..HEAD --oneline
 
 ### Direct Command
 
+<img src="https://github.com/user-attachments/assets/e58f0b99-68bf-45a5-87b9-ba7f925ddc87" alt="zsh-ai direct command demo" width="520">
+
 ```bash
 $ zsh-ai "find large files modified this week"
 $ find . -type f -size +50M -mtime -7
