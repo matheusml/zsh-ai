@@ -113,6 +113,8 @@ Key: [DashScope](https://dashscope.console.aliyun.com/api-key)
 
 Use the OpenAI provider for LM Studio, LocalAI, llama.cpp, vLLM, LiteLLM, Perplexity, and similar APIs.
 
+Local endpoint without auth:
+
 ```bash
 export ZSH_AI_PROVIDER="openai"
 export ZSH_AI_OPENAI_URL="http://localhost:8080/v1/chat/completions"
@@ -121,9 +123,12 @@ export ZSH_AI_OPENAI_MODEL="your-model-name"
 
 Use `http://` only for local endpoints. Use HTTPS for remote proxies or providers.
 
-For proxies with their own key:
+Remote proxy or provider with auth:
 
 ```bash
+export ZSH_AI_PROVIDER="openai"
+export ZSH_AI_OPENAI_URL="https://proxy.example.com/v1/chat/completions"
+export ZSH_AI_OPENAI_MODEL="your-model-name"
 export ZSH_AI_OPENAI_API_KEY="sk-your-proxy-key"
 ```
 

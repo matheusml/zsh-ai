@@ -10,7 +10,7 @@ cd zsh-ai
 ./run-tests.zsh
 ```
 
-Manual check:
+After configuring a provider, run a manual check:
 
 ```bash
 source zsh-ai.plugin.zsh

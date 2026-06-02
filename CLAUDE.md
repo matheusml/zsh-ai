@@ -20,7 +20,7 @@ This repo is a small zsh plugin that turns natural-language prompts into shell c
 
 ## Invariants
 
-- shell only
+- zsh implementation, with `curl` and `perl` required
 - `jq` stays optional
 - commands land in the prompt before execution
 - test both `# ...` and `zsh-ai "..."`
