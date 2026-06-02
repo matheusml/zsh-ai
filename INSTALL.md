@@ -37,20 +37,6 @@ git clone https://github.com/matheusml/zsh-ai ~/.zsh-ai
 echo 'source ~/.zsh-ai/zsh-ai.plugin.zsh' >> ~/.zshrc
 ```
 
-## Verify
-
-```bash
-source ~/.zshrc
-```
-
-Then type this and press Enter:
-
-```bash
-# show current date and time
-```
-
-You should see a command like `date` appear in your prompt.
-
 ## Providers
 
 Add one provider block to `~/.zshrc`.
@@ -139,6 +125,22 @@ export ZSH_AI_OPENAI_API_KEY="sk-your-proxy-key"
 
 `ZSH_AI_OPENAI_API_KEY` takes priority over `OPENAI_API_KEY`.
 
+## Verify
+
+After installing and choosing a provider, reload your shell:
+
+```bash
+source ~/.zshrc
+```
+
+Then type this and press Enter:
+
+```bash
+# show current date and time
+```
+
+You should see a command like `date` appear in your prompt.
+
 ## Defaults
 
 ```bash
@@ -158,6 +160,9 @@ Provider URLs are configurable too:
 export ZSH_AI_ANTHROPIC_URL="https://api.anthropic.com/v1/messages"
 export ZSH_AI_OPENAI_URL="https://api.openai.com/v1/chat/completions"
 export ZSH_AI_OLLAMA_URL="http://localhost:11434"
+export ZSH_AI_MISTRAL_URL="https://api.mistral.ai/v1/chat/completions"
+export ZSH_AI_GROK_URL="https://api.x.ai/v1/chat/completions"
+export ZSH_AI_QWEN_URL="https://dashscope.aliyuncs.com/compatible-mode/v1/chat/completions"
 ```
 
 ## Prompt Preferences
