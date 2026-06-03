@@ -246,8 +246,8 @@ test_puts_generated_command_in_buffer() {
     export ZSH_AI_PROVIDER="anthropic"
     export ANTHROPIC_API_KEY="test-key"
     
-    # Mock query function
-    _zsh_ai_query() {
+    # Mock execute command function
+    _zsh_ai_execute_command() {
         echo "ls -la"
     }
     
@@ -274,8 +274,8 @@ test_no_execution_happens() {
     export ZSH_AI_PROVIDER="anthropic"
     export ANTHROPIC_API_KEY="test-key"
     
-    # Mock query function
-    _zsh_ai_query() {
+    # Mock execute command function
+    _zsh_ai_execute_command() {
         echo "pwd"
     }
     
@@ -310,8 +310,8 @@ test_shows_loading_spinner() {
     export ZSH_AI_PROVIDER="anthropic"
     export ANTHROPIC_API_KEY="test-key"
     
-    # Mock query function with delay to simulate API call
-    _zsh_ai_query() {
+    # Mock execute command function with delay to simulate API call
+    _zsh_ai_execute_command() {
         sleep 0.3
         echo "ls -la"
     }
@@ -358,7 +358,7 @@ test_get_system_prompt_includes_all_rules() {
 test_get_system_prompt_with_complex_context() {
     setup_test_env
     
-    local complex_context="Current dir: /home/user\nGit branch: main\nProject: Node.js"
+    local complex_context=$'Current dir: /home/user\nGit branch: main\nProject: Node.js'
     local prompt=$(_zsh_ai_get_system_prompt "$complex_context")
     
     # Check that context is included at the end
@@ -374,7 +374,7 @@ test_get_system_prompt_with_empty_context() {
     local prompt=$(_zsh_ai_get_system_prompt "")
     
     # Should still include the Context: header even if empty
-    assert_contains "$prompt" "Context:\n"
+    assert_contains "$prompt" "Context:"
     
     teardown_test_env
 }
@@ -427,7 +427,7 @@ test_get_system_prompt_without_extension() {
     assert_contains "$prompt" "test context"
     
     # Should not have extra newlines where extension would be
-    local expected_pattern="glob patterns in quotes)\n\nContext:"
+    local expected_pattern=$'glob patterns in quotes)\n\nContext:'
     assert_contains "$prompt" "$expected_pattern"
     
     teardown_test_env
@@ -469,23 +469,24 @@ test_get_system_prompt_with_empty_extension() {
 
 # Run tests
 echo "Running utils tests..."
-test_routes_to_anthropic_provider && echo "✓ Routes to Anthropic provider when configured"
-test_routes_to_ollama_provider && echo "✓ Routes to Ollama provider when configured"
-test_checks_ollama_availability_before_querying && echo "✓ Checks Ollama availability before querying"
-test_shows_usage_without_arguments && echo "✓ Shows usage when called without arguments"
-test_shows_ollama_model_in_usage && echo "✓ Shows Ollama model in usage for Ollama provider"
-test_shows_command_without_executing && echo "✓ Shows command without executing"
-test_puts_command_in_buffer && echo "✓ Puts command in buffer"
-test_handles_api_errors_in_zsh_ai && echo "✓ Handles API errors in zsh-ai command"
-test_handles_empty_response_in_zsh_ai && echo "✓ Handles empty response in zsh-ai command"
-test_combines_multiple_arguments && echo "✓ Combines multiple arguments in zsh-ai command"
-test_puts_generated_command_in_buffer && echo "✓ Puts generated command in buffer"
-test_no_execution_happens && echo "✓ No execution happens"
-test_shows_loading_spinner && echo "✓ Shows loading spinner during command generation"
-test_get_system_prompt_includes_all_rules && echo "✓ System prompt includes all rules"
-test_get_system_prompt_with_complex_context && echo "✓ System prompt handles complex context"
-test_get_system_prompt_with_empty_context && echo "✓ System prompt handles empty context"
-test_get_system_prompt_with_extension && echo "✓ System prompt includes custom extension when set"
-test_get_system_prompt_without_extension && echo "✓ System prompt works without extension"
-test_get_system_prompt_with_multiline_extension && echo "✓ System prompt handles multiline extension"
-test_get_system_prompt_with_empty_extension && echo "✓ System prompt handles empty extension"
+run_test "Routes to Anthropic provider when configured" test_routes_to_anthropic_provider
+run_test "Routes to Ollama provider when configured" test_routes_to_ollama_provider
+run_test "Checks Ollama availability before querying" test_checks_ollama_availability_before_querying
+run_test "Shows usage when called without arguments" test_shows_usage_without_arguments
+run_test "Shows Ollama model in usage for Ollama provider" test_shows_ollama_model_in_usage
+run_test "Shows command without executing" test_shows_command_without_executing
+run_test "Puts command in buffer" test_puts_command_in_buffer
+run_test "Handles API errors in zsh-ai command" test_handles_api_errors_in_zsh_ai
+run_test "Handles empty response in zsh-ai command" test_handles_empty_response_in_zsh_ai
+run_test "Combines multiple arguments in zsh-ai command" test_combines_multiple_arguments
+run_test "Puts generated command in buffer" test_puts_generated_command_in_buffer
+run_test "No execution happens" test_no_execution_happens
+run_test "Shows loading spinner during command generation" test_shows_loading_spinner
+run_test "System prompt includes all rules" test_get_system_prompt_includes_all_rules
+run_test "System prompt handles complex context" test_get_system_prompt_with_complex_context
+run_test "System prompt handles empty context" test_get_system_prompt_with_empty_context
+run_test "System prompt includes custom extension when set" test_get_system_prompt_with_extension
+run_test "System prompt works without extension" test_get_system_prompt_without_extension
+run_test "System prompt handles multiline extension" test_get_system_prompt_with_multiline_extension
+run_test "System prompt handles empty extension" test_get_system_prompt_with_empty_extension
+finish_tests

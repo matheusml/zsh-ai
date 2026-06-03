@@ -71,7 +71,8 @@ test_my_feature() {
 
 # Run tests
 echo "Running my tests..."
-test_my_feature && echo "✓ My feature works"
+run_test "My feature works" test_my_feature
+finish_tests
 ```
 
 To manually verify your changes work:

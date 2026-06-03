@@ -207,27 +207,22 @@ test_includes_temperature_for_gpt4_models() {
     assert_contains "$captured_payload" '"temperature": 0.3'
 }
 
-# Add missing assert_not_empty function
-assert_not_empty() {
-    [[ -n "$1" ]]
-}
-
 # Run tests
 echo "Running OpenAI provider tests..."
-test_openai_query_success && echo "✓ OpenAI query success"
-test_openai_query_error_response && echo "✓ OpenAI error response handling"
-test_openai_json_escaping && echo "✓ OpenAI JSON escaping"
-test_handles_response_with_newline && echo "✓ Handles response with trailing newline"
-test_handles_response_without_jq && echo "✓ Handles response without jq and with newline"
-test_uses_default_url_when_not_configured && echo "✓ Uses default URL when not configured"
-test_uses_custom_url_when_configured && echo "✓ Uses custom URL when configured"
-test_uses_perplexity_url && echo "✓ Uses Perplexity URL"
-test_uses_max_tokens_for_gpt4_models && echo "✓ Uses max_tokens for gpt-4 models"
-test_uses_max_tokens_for_gpt35_models && echo "✓ Uses max_tokens for gpt-3.5 models"
-test_uses_max_completion_tokens_for_gpt5_models && echo "✓ Uses max_completion_tokens for gpt-5 models"
-test_uses_max_completion_tokens_for_o1_models && echo "✓ Uses max_completion_tokens for o1 models"
-test_omits_temperature_for_gpt5_models && echo "✓ Omits temperature for gpt-5 models"
-test_includes_temperature_for_gpt4_models && echo "✓ Includes temperature for gpt-4 models"
+run_test "OpenAI query success" test_openai_query_success
+run_test "OpenAI error response handling" test_openai_query_error_response
+run_test "OpenAI JSON escaping" test_openai_json_escaping
+run_test "Handles response with trailing newline" test_handles_response_with_newline
+run_test "Handles response without jq and with newline" test_handles_response_without_jq
+run_test "Uses default URL when not configured" test_uses_default_url_when_not_configured
+run_test "Uses custom URL when configured" test_uses_custom_url_when_configured
+run_test "Uses Perplexity URL" test_uses_perplexity_url
+run_test "Uses max_tokens for gpt-4 models" test_uses_max_tokens_for_gpt4_models
+run_test "Uses max_tokens for gpt-3.5 models" test_uses_max_tokens_for_gpt35_models
+run_test "Uses max_completion_tokens for gpt-5 models" test_uses_max_completion_tokens_for_gpt5_models
+run_test "Uses max_completion_tokens for o1 models" test_uses_max_completion_tokens_for_o1_models
+run_test "Omits temperature for gpt-5 models" test_omits_temperature_for_gpt5_models
+run_test "Includes temperature for gpt-4 models" test_includes_temperature_for_gpt4_models
 
 # Tests for keyless OpenAI-compatible endpoints
 echo ""
@@ -397,10 +392,11 @@ test_openai_falls_back_to_openai_api_key() {
     return 0
 }
 
-test_openai_requires_key_for_default_url && echo "✓ Requires API key for default OpenAI URL"
-test_openai_works_without_key_for_custom_url && echo "✓ Works without API key for custom URL"
-test_openai_query_without_auth_header && echo "✓ Omits Authorization header when no API key"
-test_openai_query_with_auth_header_when_key_set && echo "✓ Includes Authorization header when API key is set"
-test_openai_zsh_ai_key_passes_validation_for_default_url && echo "✓ ZSH_AI_OPENAI_API_KEY passes validation for default URL"
-test_openai_zsh_ai_key_takes_precedence && echo "✓ ZSH_AI_OPENAI_API_KEY takes precedence over OPENAI_API_KEY"
-test_openai_falls_back_to_openai_api_key && echo "✓ Falls back to OPENAI_API_KEY when ZSH_AI_OPENAI_API_KEY is not set"
+run_test "Requires API key for default OpenAI URL" test_openai_requires_key_for_default_url
+run_test "Works without API key for custom URL" test_openai_works_without_key_for_custom_url
+run_test "Omits Authorization header when no API key" test_openai_query_without_auth_header
+run_test "Includes Authorization header when API key is set" test_openai_query_with_auth_header_when_key_set
+run_test "ZSH_AI_OPENAI_API_KEY passes validation for default URL" test_openai_zsh_ai_key_passes_validation_for_default_url
+run_test "ZSH_AI_OPENAI_API_KEY takes precedence over OPENAI_API_KEY" test_openai_zsh_ai_key_takes_precedence
+run_test "Falls back to OPENAI_API_KEY when ZSH_AI_OPENAI_API_KEY is not set" test_openai_falls_back_to_openai_api_key
+finish_tests

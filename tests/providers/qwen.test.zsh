@@ -215,23 +215,19 @@ test_qwen_validation_succeeds_with_api_key() {
     assert_equals "$exit_code" "0" || return 1
 }
 
-# Add missing assert_not_empty function
-assert_not_empty() {
-    [[ -n "$1" ]]
-}
-
 # Run tests
 echo "Running Qwen provider tests..."
-test_qwen_query_success && echo "✓ Qwen query success"
-test_qwen_query_error_response && echo "✓ Qwen error response handling"
-test_qwen_json_escaping && echo "✓ Qwen JSON escaping"
-test_handles_response_with_newline && echo "✓ Handles response with trailing newline"
-test_handles_response_without_jq && echo "✓ Handles response without jq and with newline"
-test_uses_configurable_api_url && echo "✓ Uses configurable API URL (ZSH_AI_QWEN_URL)"
-test_uses_max_tokens && echo "✓ Uses max_tokens parameter"
-test_uses_qwen_api_key && echo "✓ Uses QWEN_API_KEY environment variable"
+run_test "Qwen query success" test_qwen_query_success
+run_test "Qwen error response handling" test_qwen_query_error_response
+run_test "Qwen JSON escaping" test_qwen_json_escaping
+run_test "Handles response with trailing newline" test_handles_response_with_newline
+run_test "Handles response without jq and with newline" test_handles_response_without_jq
+run_test "Uses configurable API URL (ZSH_AI_QWEN_URL)" test_uses_configurable_api_url
+run_test "Uses max_tokens parameter" test_uses_max_tokens
+run_test "Uses QWEN_API_KEY environment variable" test_uses_qwen_api_key
 
 echo ""
 echo "Running Qwen config validation tests..."
-test_qwen_requires_api_key && echo "✓ Requires API key for qwen provider"
-test_qwen_validation_succeeds_with_api_key && echo "✓ Validation succeeds with QWEN_API_KEY"
+run_test "Requires API key for qwen provider" test_qwen_requires_api_key
+run_test "Validation succeeds with QWEN_API_KEY" test_qwen_validation_succeeds_with_api_key
+finish_tests

@@ -28,7 +28,7 @@ _zsh_ai_accept_line() {
         local tmpfile=$(mktemp)
         
         # Disable job control notifications
-        setopt local_options no_monitor no_notify
+        setopt local_options no_monitor no_notify no_bg_nice
         
         # Start the API query in background using the shared function
         # Only redirect stdout to tmpfile, let stderr go to /dev/null to avoid mixing error output
@@ -45,11 +45,12 @@ _zsh_ai_accept_line() {
         done
         
         # Get the response
-        local cmd=$(cat "$tmpfile")
+        wait $pid
         local exit_code=$?
+        local cmd=$(cat "$tmpfile")
         rm -f "$tmpfile"
         
-        if [[ -n "$cmd" ]] && [[ "$cmd" != "Error:"* ]] && [[ "$cmd" != "API Error:"* ]]; then
+        if [[ $exit_code -eq 0 ]] && [[ -n "$cmd" ]] && [[ "$cmd" != "Error:"* ]] && [[ "$cmd" != "API Error:"* ]]; then
             # Simply replace the buffer with the generated command
             BUFFER="$cmd"
 

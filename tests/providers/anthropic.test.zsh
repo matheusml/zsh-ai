@@ -319,17 +319,18 @@ test_uses_correct_url_from_config() {
 
 # Run tests
 echo "Running anthropic provider tests..."
-test_successful_api_call_with_jq && echo "✓ Successful API call with jq available"
-test_successful_api_call_without_jq && echo "✓ Successful API call without jq"
-test_handles_api_error_response_with_jq && echo "✓ Handles API error response with jq"
-test_handles_curl_connection_failure && echo "✓ Handles curl connection failure"
-test_handles_empty_response_with_jq && echo "✓ Handles empty response with jq"
-test_handles_malformed_response_without_jq && echo "✓ Handles malformed response without jq"
-test_escapes_quotes_in_query && echo "✓ Escapes quotes in query"
-test_includes_context_in_api_call && echo "✓ Includes context in API call"
-test_uses_correct_api_headers && echo "✓ Uses correct API headers"
-test_uses_correct_model && echo "✓ Uses correct model"
-test_handles_multiline_context_properly && echo "✓ Handles multiline context properly"
-test_handles_response_with_escaped_newline_with_jq && echo "✓ Handles response with escaped newline (with jq)"
-test_handles_response_with_escaped_newline_without_jq && echo "✓ Handles response with escaped newline (without jq)"
-test_uses_correct_url_from_config && echo "✓ Uses correct URL from config"
+run_test "Successful API call with jq available" test_successful_api_call_with_jq
+run_test "Successful API call without jq" test_successful_api_call_without_jq
+run_test "Handles API error response with jq" test_handles_api_error_response_with_jq
+run_test "Handles curl connection failure" test_handles_curl_connection_failure
+run_test "Handles empty response with jq" test_handles_empty_response_with_jq
+run_test "Handles malformed response without jq" test_handles_malformed_response_without_jq
+run_test "Escapes quotes in query" test_escapes_quotes_in_query
+run_test "Includes context in API call" test_includes_context_in_api_call
+run_test "Uses correct API headers" test_uses_correct_api_headers
+run_test "Uses correct model" test_uses_correct_model
+run_test "Handles multiline context properly" test_handles_multiline_context_properly
+run_test "Handles response with escaped newline (with jq)" test_handles_response_with_escaped_newline_with_jq
+run_test "Handles response with escaped newline (without jq)" test_handles_response_with_escaped_newline_without_jq
+run_test "Uses correct URL from config" test_uses_correct_url_from_config
+finish_tests

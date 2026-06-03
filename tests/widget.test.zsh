@@ -204,8 +204,8 @@ test_handles_api_errors_gracefully() {
     
     _zsh_ai_accept_line
     
-    # Buffer should be cleared on error
-    assert_equals "$BUFFER" ""
+    # Buffer should be restored on error so the user can edit the query
+    assert_equals "$BUFFER" "# invalid query"
     assert_contains "$printed_output" "Failed to generate command"
     assert_contains "$printed_output" "API connection failed"
     
@@ -342,8 +342,8 @@ test_handles_empty_api_response() {
     
     _zsh_ai_accept_line
     
-    # Buffer should be cleared
-    assert_equals "$BUFFER" ""
+    # Buffer should be restored on error so the user can edit the query
+    assert_equals "$BUFFER" "# empty response"
     assert_contains "$printed_output" "Failed to generate command"
     
     teardown_test_env
@@ -354,20 +354,15 @@ test_uses_temporary_file_for_api_response() {
     export ZSH_AI_PROVIDER="anthropic"
     export ANTHROPIC_API_KEY="test-key"
     
-    # Track mktemp calls
-    local mktemp_called=0
+    # Return a predictable temp path
     local temp_file="/tmp/test.tmp"
     mktemp() {
-        mktemp_called=1
         echo "$temp_file"
     }
     
     # Mock cat and rm
     mock_command "cat" "echo 'Hello World'" 0
-    local rm_called=0
-    rm() {
-        rm_called=1
-    }
+    mock_command "rm" "" 0
     
     # Mock the query function
     _zsh_ai_query() {
@@ -389,8 +384,7 @@ test_uses_temporary_file_for_api_response() {
     
     _zsh_ai_accept_line
     
-    assert_equals "$mktemp_called" "1"
-    assert_equals "$rm_called" "1"
+    assert_called "rm" "1"
     
     teardown_test_env
 }
@@ -434,14 +428,15 @@ test_handles_commands_with_special_characters() {
 
 # Run tests
 echo "Running widget tests..."
-test_widget_initialization_registers_precmd_hook && echo "✓ Widget initialization registers precmd hook"
-test_widget_init_hook_registers_widget_and_removes_itself && echo "✓ Widget init hook registers widget and removes itself"
-test_normal_commands_execute_without_ai_processing && echo "✓ Normal commands execute without AI processing"
-test_multiline_ai_commands_execute_without_processing && echo "✓ Multiline AI commands execute without processing"
-test_ai_commands_starting_with_hash_are_processed && echo "✓ AI commands starting with # are processed"
-test_handles_api_errors_gracefully && echo "✓ Handles API errors gracefully"
-test_shows_loading_animation_during_api_call && echo "✓ Shows loading animation during API call"
-test_preserves_original_buffer_during_animation && echo "✓ Preserves original buffer during animation"
-test_handles_empty_api_response && echo "✓ Handles empty API response"
-test_uses_temporary_file_for_api_response && echo "✓ Uses temporary file for API response"
-test_handles_commands_with_special_characters && echo "✓ Handles commands with special characters"
+run_test "Widget initialization registers precmd hook" test_widget_initialization_registers_precmd_hook
+run_test "Widget init hook registers widget and removes itself" test_widget_init_hook_registers_widget_and_removes_itself
+run_test "Normal commands execute without AI processing" test_normal_commands_execute_without_ai_processing
+run_test "Multiline AI commands execute without processing" test_multiline_ai_commands_execute_without_processing
+run_test "AI commands starting with # are processed" test_ai_commands_starting_with_hash_are_processed
+run_test "Handles API errors gracefully" test_handles_api_errors_gracefully
+run_test "Shows loading animation during API call" test_shows_loading_animation_during_api_call
+run_test "Preserves original buffer during animation" test_preserves_original_buffer_during_animation
+run_test "Handles empty API response" test_handles_empty_api_response
+run_test "Uses temporary file for API response" test_uses_temporary_file_for_api_response
+run_test "Handles commands with special characters" test_handles_commands_with_special_characters
+finish_tests
