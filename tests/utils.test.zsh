@@ -448,15 +448,27 @@ test_get_system_prompt_with_multiline_extension() {
     setup_test_env
     
     # Set multi-line custom prompt extension
-    export ZSH_AI_PROMPT_EXTEND="Additional rules:\n1. Prefer fd over find\n2. Use bat instead of cat\n3. Always use exa for ls commands"
+    export ZSH_AI_PROMPT_EXTEND="Additional rules:\n1. Prefer fd over find\n2. Use bat instead of cat\n3. Keep a\b literal"
     
     local prompt=$(_zsh_ai_get_system_prompt "test context")
-    
-    # Check that all lines of extension are included
-    assert_contains "$prompt" "Additional rules:"
-    assert_contains "$prompt" "1. Prefer fd over find"
-    assert_contains "$prompt" "2. Use bat instead of cat"
-    assert_contains "$prompt" "3. Always use exa for ls commands"
+
+    local prompt_lines=("${(@f)prompt}")
+    local extension_start=0
+    for i in {1..${#prompt_lines[@]}}; do
+        if [[ "${prompt_lines[$i]}" == "Additional rules:" ]]; then
+            extension_start=$i
+            break
+        fi
+    done
+
+    if [[ $extension_start -eq 0 ]]; then
+        echo "Error: Prompt extension missing"
+        return 1
+    fi
+
+    assert_equals "${prompt_lines[$((extension_start + 1))]}" "1. Prefer fd over find"
+    assert_equals "${prompt_lines[$((extension_start + 2))]}" "2. Use bat instead of cat"
+    assert_equals "${prompt_lines[$((extension_start + 3))]}" '3. Keep a\b literal'
     
     teardown_test_env
 }

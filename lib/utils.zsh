@@ -21,7 +21,8 @@ Examples:
     
     # Add custom prompt extension if provided
     if [[ -n "$ZSH_AI_PROMPT_EXTEND" ]]; then
-        local prompt_extend="${ZSH_AI_PROMPT_EXTEND//\\n/$'\n'}"
+        local newline=$'\n'
+        local prompt_extend="${ZSH_AI_PROMPT_EXTEND//\\n/$newline}"
         printf '%s\n\n%s\n\nContext:\n%s\n' "$base_prompt" "$prompt_extend" "$context"
     else
         printf '%s\n\nContext:\n%s\n' "$base_prompt" "$context"
