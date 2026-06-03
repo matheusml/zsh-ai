@@ -78,7 +78,7 @@ test_builds_system_prompt_from_raw_context() {
     local payload_file=$(mktemp)
 
     _zsh_ai_build_context() {
-        printf '%s\n%s' 'Current directory: /tmp/"quoted"' 'Files: slash\path.txt'
+        printf '%s\n%s' 'Current directory: /tmp/"quoted"' 'Files: a\b.txt'
     }
 
     curl() {
@@ -108,7 +108,7 @@ test_builds_system_prompt_from_raw_context() {
 
     assert_contains "$decoded_system_prompt" 'Current directory: /tmp/"quoted"'
 
-    if ! printf '%s' "$decoded_system_prompt" | grep -Fq 'Files: slash\path.txt'; then
+    if ! printf '%s' "$decoded_system_prompt" | grep -Fq 'Files: a\b.txt'; then
         printf '%s\n' "Expected decoded system prompt to contain literal backslash context"
         TEST_FAILED=1
     fi
@@ -116,7 +116,7 @@ test_builds_system_prompt_from_raw_context() {
         printf '%s\n' "Expected decoded system prompt to contain raw quotes, not escaped quotes"
         TEST_FAILED=1
     fi
-    if printf '%s' "$decoded_system_prompt" | grep -Fq 'slash\\path.txt'; then
+    if printf '%s' "$decoded_system_prompt" | grep -Fq 'a\\b.txt'; then
         printf '%s\n' "Expected decoded system prompt to contain one backslash, not two"
         TEST_FAILED=1
     fi

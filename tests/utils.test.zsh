@@ -368,6 +368,17 @@ test_get_system_prompt_with_complex_context() {
     teardown_test_env
 }
 
+test_get_system_prompt_preserves_backslash_context() {
+    setup_test_env
+
+    local prompt=$(_zsh_ai_get_system_prompt 'Files: a\b.txt')
+    local context_line=$(printf '%s' "$prompt" | tail -n 1)
+
+    assert_equals "$context_line" 'Files: a\b.txt'
+
+    teardown_test_env
+}
+
 test_get_system_prompt_with_empty_context() {
     setup_test_env
     
@@ -484,6 +495,7 @@ run_test "No execution happens" test_no_execution_happens
 run_test "Shows loading spinner during command generation" test_shows_loading_spinner
 run_test "System prompt includes all rules" test_get_system_prompt_includes_all_rules
 run_test "System prompt handles complex context" test_get_system_prompt_with_complex_context
+run_test "System prompt preserves backslash context" test_get_system_prompt_preserves_backslash_context
 run_test "System prompt handles empty context" test_get_system_prompt_with_empty_context
 run_test "System prompt includes custom extension when set" test_get_system_prompt_with_extension
 run_test "System prompt works without extension" test_get_system_prompt_without_extension
