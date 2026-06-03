@@ -71,6 +71,57 @@ test_openai_json_escaping() {
     assert_not_empty "$result"
 }
 
+test_builds_system_prompt_from_raw_context() {
+    export OPENAI_API_KEY="test-key"
+    export ZSH_AI_OPENAI_MODEL="gpt-4o-mini"
+    export ZSH_AI_OPENAI_URL="https://api.openai.com/v1/chat/completions"
+    local payload_file=$(mktemp)
+
+    _zsh_ai_build_context() {
+        printf '%s\n%s' 'Current directory: /tmp/"quoted"' 'Files: slash\path.txt'
+    }
+
+    curl() {
+        if [[ "$*" == *"https://api.openai.com/v1/chat/completions"* ]]; then
+            local prev_arg=""
+            for arg in "$@"; do
+                if [[ "$prev_arg" == "--data" ]]; then
+                    printf '%s' "$arg" > "$payload_file"
+                    break
+                fi
+                prev_arg="$arg"
+            done
+            echo '{"choices":[{"message":{"content":"test"}}]}'
+            return 0
+        fi
+        command curl "$@"
+    }
+
+    _zsh_ai_query_openai "test" >/dev/null
+    local captured_payload=$(cat "$payload_file")
+    rm -f "$payload_file"
+
+    # Restore the real context builder for the rest of the file.
+    source "${PLUGIN_DIR}/lib/context.zsh"
+
+    local decoded_system_prompt=$(printf "%s" "$captured_payload" | perl -MJSON::PP -0777 -ne 'print decode_json($_)->{messages}->[0]->{content}')
+
+    assert_contains "$decoded_system_prompt" 'Current directory: /tmp/"quoted"'
+
+    if ! printf '%s' "$decoded_system_prompt" | grep -Fq 'Files: slash\path.txt'; then
+        printf '%s\n' "Expected decoded system prompt to contain literal backslash context"
+        TEST_FAILED=1
+    fi
+    if printf '%s' "$decoded_system_prompt" | grep -Fq '\"quoted\"'; then
+        printf '%s\n' "Expected decoded system prompt to contain raw quotes, not escaped quotes"
+        TEST_FAILED=1
+    fi
+    if printf '%s' "$decoded_system_prompt" | grep -Fq 'slash\\path.txt'; then
+        printf '%s\n' "Expected decoded system prompt to contain one backslash, not two"
+        TEST_FAILED=1
+    fi
+}
+
 test_handles_response_with_newline() {
     export OPENAI_API_KEY="test-key"
     export ZSH_AI_OPENAI_MODEL="gpt-5-mini"
@@ -160,7 +211,7 @@ capture_openai_payload_for_model() {
             local prev_arg=""
             for arg in "$@"; do
                 if [[ "$prev_arg" == "--data" ]]; then
-                    echo "$arg" > "$payload_file"
+                    printf '%s' "$arg" > "$payload_file"
                     break
                 fi
                 prev_arg="$arg"
@@ -212,6 +263,7 @@ echo "Running OpenAI provider tests..."
 run_test "OpenAI query success" test_openai_query_success
 run_test "OpenAI error response handling" test_openai_query_error_response
 run_test "OpenAI JSON escaping" test_openai_json_escaping
+run_test "Builds system prompt from raw context" test_builds_system_prompt_from_raw_context
 run_test "Handles response with trailing newline" test_handles_response_with_newline
 run_test "Handles response without jq and with newline" test_handles_response_without_jq
 run_test "Uses default URL when not configured" test_uses_default_url_when_not_configured

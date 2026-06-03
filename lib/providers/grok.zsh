@@ -9,8 +9,7 @@ _zsh_ai_query_grok() {
 
     # Build context
     local context=$(_zsh_ai_build_context)
-    local escaped_context=$(_zsh_ai_escape_json "$context")
-    local system_prompt=$(_zsh_ai_get_system_prompt "$escaped_context")
+    local system_prompt=$(_zsh_ai_get_system_prompt "$context")
     local escaped_system_prompt=$(_zsh_ai_escape_json "$system_prompt")
 
     # Prepare the JSON payload - escape quotes in the query
