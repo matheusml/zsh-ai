@@ -44,9 +44,11 @@ _zsh_ai_accept_line() {
             zle -R && sleep 0.1
         done
         
-        # Get the response
-        wait $pid
+        # Reap the background job so it doesn't linger in the job table
+        wait $pid 2>/dev/null
         local exit_code=$?
+
+        # Get the response
         local cmd=$(cat "$tmpfile")
         rm -f "$tmpfile"
         

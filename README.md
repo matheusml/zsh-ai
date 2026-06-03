@@ -1,112 +1,111 @@
-# 🪄 zsh-ai
+# zsh-ai
 
-> Stop Googling for command syntax. Just describe what you want.
+> Ask your shell for the command you meant to write.
 
-<img src="https://img.shields.io/github/v/release/matheusml/zsh-ai?label=version&color=yellow" alt="Version"> <img src="https://img.shields.io/badge/dependencies-zero-brightgreen" alt="Zero Dependencies"> <img src="https://img.shields.io/badge/size-<5KB-blue" alt="Tiny Size"> <img src="https://img.shields.io/github/license/matheusml/zsh-ai?color=lightgrey" alt="License">
+<img src="https://img.shields.io/github/v/release/matheusml/zsh-ai?label=version&color=yellow" alt="Version"> <img src="https://img.shields.io/badge/runtime-zsh-blue" alt="zsh runtime"> <img src="https://img.shields.io/badge/jq-optional-lightgrey" alt="jq optional"> <img src="https://img.shields.io/github/license/matheusml/zsh-ai?color=lightgrey" alt="License">
 
-You know what you want to do, but not the exact command. So you Google it, scroll through Stack Overflow, copy something, adapt it, and hope it works.
+The hard part of the terminal usually is not knowing what to do. It is remembering the exact flags, quoting, and pipeline shape.
 
-**zsh-ai fixes this.** Type what you want in plain English, and get the right command instantly—ready to run.
+`zsh-ai` turns a zsh comment into a command. Type `#`, describe the job, press Enter, and the generated command appears in your prompt.
 
 ```bash
-$ # find all files larger than 100mb modified in the last week
-$ find . -type f -size +100M -mtime -7    # ← appears instantly, ready to run
+$ # find files larger than 100mb changed this week
+$ find . -type f -size +100M -mtime -7
 ```
 
-Works with Anthropic Claude, OpenAI, Google Gemini, Mistral, Grok, Qwen, and local models via Ollama. A single 5KB shell script with zero dependencies.
+It does not run the command for you. You read it first, edit it if needed, then press Enter again.
 
-## Why zsh-ai?
+## Why This Is Different
 
-**🎯 Just works** - Type `# what you want` and press Enter. The command appears ready to execute. No copy-paste, no adapting.
+Most command help breaks your flow: search result, forum thread, copied snippet, little edits, fingers crossed.
 
-**🧠 Context-aware** - Detects your project type, git status, and current directory. Ask for "run tests" and get `npm test` in a Node project or `pytest` in Python.
+`zsh-ai` stays on the command line. It sends useful context with your request, including project type, nearby files, git state, and OS. That means "run tests" can become the right command for the directory you are already in.
 
-**🔒 You stay in control** - Commands appear in your prompt for review before running. Use local Ollama models for complete privacy, or bring your own API keys.
+It is also small by design: zsh plus `curl` and `perl`, no Node runtime, no Python runtime. `jq` is optional.
 
-**🪶 Lightweight** - A 5KB shell script. No Python, no Node.js, no package managers. Starts instantly with your shell.
-
-## How It Works
-
-1. **You type** a comment describing what you want: `# compress all images in this folder`
-2. **zsh-ai gathers context** about your environment (current directory, git status, project type)
-3. **AI generates** the right command for your situation
-4. **Command appears** in your prompt, ready to review and run
-
-The command never runs automatically—you always see it first and decide whether to execute it.
-
-## Demo
-
-### Method 1: Comment Syntax (Recommended)
-Type `#` followed by what you want to do, then press Enter. It's that simple!
-
-<img src="https://github.com/user-attachments/assets/eff46629-855c-41eb-9de3-a53040bd2654" alt="Method 1 Demo" width="480">
-
+## Install
 
 ```bash
-$ # find all large files modified this week
+brew tap matheusml/zsh-ai
+brew install zsh-ai
+```
+
+Add this to `~/.zshrc`, with the API key above the `source` line:
+
+```bash
+export ANTHROPIC_API_KEY="your-key-here"
+source $(brew --prefix)/share/zsh-ai/zsh-ai.plugin.zsh
+```
+
+Keep API keys out of public dotfiles.
+
+Reload your shell:
+
+```bash
+source ~/.zshrc
+```
+
+Then try:
+
+```bash
+# summarize disk usage for this folder
+```
+
+Prefer a local model on your machine?
+
+```bash
+ollama pull llama3.2
+export ZSH_AI_PROVIDER="ollama"
+```
+
+Put the Ollama provider line above the `zsh-ai` source line.
+
+Full setup lives in [INSTALL.md](INSTALL.md).
+
+## Usage
+
+### Comment Syntax
+
+Type `#`, describe the job, then press Enter.
+
+<img src="https://github.com/user-attachments/assets/eff46629-855c-41eb-9de3-a53040bd2654" alt="zsh-ai comment syntax demo" width="520">
+
+```bash
+$ # show what is using port 3000
+$ lsof -i :3000
+
+$ # show commits on this branch that are not on main
+$ git log main..HEAD --oneline
+```
+
+### Direct Command
+
+<img src="https://github.com/user-attachments/assets/e58f0b99-68bf-45a5-87b9-ba7f925ddc87" alt="zsh-ai direct command demo" width="520">
+
+```bash
+$ zsh-ai "find large files modified this week"
 $ find . -type f -size +50M -mtime -7
-
-$ # kill process using port 3000  
-$ lsof -ti:3000 | xargs kill -9
-
-$ # compress images in current directory
-$ for img in *.{jpg,png}; do convert "$img" -quality 85 "$img"; done
 ```
 
----
+The command is pushed into your prompt with `print -z`, ready to edit or run.
 
-### Method 2: Direct Command
-Prefer explicit commands? Use `zsh-ai` followed by your natural language request.
+## Configuration
 
-<img src="https://github.com/user-attachments/assets/e58f0b99-68bf-45a5-87b9-ba7f925ddc87" alt="Method 2 Demo" width="480">
-
+Switch providers with `ZSH_AI_PROVIDER`:
 
 ```bash
-$ zsh-ai "find all large files modified this week"
-$ find . -type f -size +50M -mtime -7
-
-$ zsh-ai "kill process using port 3000"
-$ lsof -ti:3000 | xargs kill -9
-
-$ zsh-ai "compress images in current directory"
-$ for img in *.{jpg,png}; do convert "$img" -quality 85 "$img"; done
+export ZSH_AI_PROVIDER="openai"
+export OPENAI_API_KEY="your-key-here"
 ```
 
-## Quick Start
+Add command preferences without replacing the built-in quoting rules:
 
-**1. Install** (Homebrew)
 ```bash
-brew tap matheusml/zsh-ai && brew install zsh-ai
+export ZSH_AI_PROMPT_EXTEND="Prefer rg over grep, fd over find, and bat over cat."
 ```
 
-**2. Add to your shell**
-```bash
-echo 'source $(brew --prefix)/share/zsh-ai/zsh-ai.plugin.zsh' >> ~/.zshrc
-```
+## Docs
 
-**3. Set your API key** (pick one provider)
-```bash
-# Anthropic (default)
-echo 'export ANTHROPIC_API_KEY="your-key-here"' >> ~/.zshrc
-
-# Or OpenAI
-echo 'export OPENAI_API_KEY="your-key-here"' >> ~/.zshrc
-echo 'export ZSH_AI_PROVIDER="openai"' >> ~/.zshrc
-
-# Or use local Ollama (free, private)
-echo 'export ZSH_AI_PROVIDER="ollama"' >> ~/.zshrc
-```
-
-**4. Restart your terminal and try it!**
-```bash
-# show disk usage for current directory
-```
-
-📚 **[Full Installation Guide →](INSTALL.md)** - Other install methods (Oh My Zsh, Antigen, manual) and all provider options
-
-## Documentation
-
-- 📦 **[Installation & Setup](INSTALL.md)** - Detailed installation instructions for all package managers
-- 🔧 **[Configuration](INSTALL.md#configuration)** - API keys, providers, and customization options  
-- 🚨 **[Troubleshooting](TROUBLESHOOTING.md)** - Common issues and solutions
-- 🤝 **[Contributing](CONTRIBUTING.md)** - Help make zsh-ai better!
+- [Installation](INSTALL.md)
+- [Troubleshooting](TROUBLESHOOTING.md)
+- [Contributing](CONTRIBUTING.md)

@@ -1,100 +1,63 @@
-# Contributing to zsh-ai
+# Contributing
 
-Thanks for wanting to help! We love contributions from everyone. 💙
+Thanks for helping with `zsh-ai`. Small, focused PRs are easiest to review.
 
-## Quick Start
-
-1. Fork & clone the repo
-2. Make your changes
-3. Test your changes (see Testing section below)
-4. Submit a pull request
-
-That's it! We'll help you with the rest.
-
-## Development
+## Quick Path
 
 ```bash
-# Try out your changes
-source zsh-ai.plugin.zsh
-
-# The project uses GitHub Actions for testing
-# Tests run automatically on PRs
+git clone https://github.com/matheusml/zsh-ai
+cd zsh-ai
+./run-tests.zsh
 ```
 
-## What We're Looking For
+After configuring a provider, run a manual check:
 
-- 🐛 **Bug fixes** - Found something broken? Fix it!
-- ✨ **New features** - Have an idea? Let's discuss it first (open an issue)
-- 📝 **Documentation** - Help others understand the project
-- 🧪 **Tests** - More tests = more confidence
-
-## Code Style
-
-Just follow the existing style you see in the codebase. When in doubt:
-- Use meaningful names
-- Keep functions small
-- Add comments for tricky parts
-
-## Testing
-
-The project uses GitHub Actions for comprehensive testing. Tests will run automatically when you submit a PR.
-
-To run tests locally:
 ```bash
-# Run all tests
+source zsh-ai.plugin.zsh
+zsh-ai "show git status"
+```
+
+## Good PRs
+
+- bug fixes
+- provider fixes or new provider support
+- better command generation behavior
+- clearer setup or usage docs
+- tests for existing edge cases
+
+Open an issue first for larger features.
+
+## Tests
+
+```bash
 ./run-tests.zsh
-
-# Run tests from a specific directory
 ./run-tests.zsh tests/providers
-
-# Run a single test file
 zsh tests/config.test.zsh
 ```
 
-### Writing Tests
+Tests live in `tests/`. Provider tests live in `tests/providers/`. Use `tests/test_helper.zsh` for assertions and mocks. Run each test with `run_test` and end test files with `finish_tests`.
 
-Tests use a simple format:
+Provider changes should cover:
 
-```zsh
-#!/usr/bin/env zsh
+- API errors
+- empty responses
+- parsing with `jq`
+- parsing without `jq`
+- docs updates when config changes
 
-# Load test helper
-source "${0:A:h}/test_helper.zsh"
+## Style
 
-# Test function
-test_my_feature() {
-    setup_test_env
-    # Your test code here
-    assert_equals "$actual" "$expected"
-    teardown_test_env
-}
+- follow the existing zsh patterns
+- keep functions small
+- keep provider code explicit
+- preserve older zsh support
+- do not add Node, Python, or another runtime dependency
+- keep `jq` optional
 
-# Run tests
-echo "Running my tests..."
-run_test "My feature works" test_my_feature
-finish_tests
-```
+## PR Checklist
 
-To manually verify your changes work:
-```bash
-# Source the plugin in your current shell
-source zsh-ai.plugin.zsh
-
-# Test the commands you modified
-zsh-ai "your test query"
-```
-
-## Submitting PRs
-
-Before submitting:
-- [ ] Your changes work locally
-- [ ] Code matches existing style
-- [ ] Commit messages are clear
-
-## Need Help?
-
-- Open an issue with your question
-- We're friendly and here to help!
-- No question is too small
-
-Thanks for contributing! 🎉
+- `./run-tests.zsh` passes
+- `# ...` comment flow tested manually
+- `zsh-ai "..."` tested manually
+- no API keys or local paths committed
+- PR description says what changed and how it was tested
