@@ -10,6 +10,32 @@ typeset -gA MOCKED_COMMANDS
 typeset -gA MOCK_OUTPUTS
 typeset -gA MOCK_EXIT_CODES
 typeset -gA CALL_COUNTS
+typeset -gi TEST_FAILED=0
+typeset -gi TEST_FILE_FAILED=0
+
+# Run one test and report the result.
+run_test() {
+    local test_name="$1"
+    local test_func="$2"
+    shift 2
+
+    TEST_FAILED=0
+    "$test_func" "$@"
+    local exit_code=$?
+
+    if [[ $exit_code -eq 0 && $TEST_FAILED -eq 0 ]]; then
+        echo "✓ $test_name"
+        return 0
+    fi
+
+    echo "✗ $test_name"
+    TEST_FILE_FAILED=1
+    return 1
+}
+
+finish_tests() {
+    return $TEST_FILE_FAILED
+}
 
 # Initialize mock for a command
 mock_command() {
@@ -27,7 +53,7 @@ mock_command() {
     $cmd() {
         CALL_COUNTS[$cmd]=\$((CALL_COUNTS[$cmd] + 1))
         if [[ -n \"\${MOCK_OUTPUTS[$cmd]}\" ]]; then
-            echo \"\${MOCK_OUTPUTS[$cmd]}\"
+            printf \"%s\\n\" \"\${MOCK_OUTPUTS[$cmd]}\"
         fi
         return \${MOCK_EXIT_CODES[$cmd]}
     }
@@ -59,6 +85,7 @@ assert_called() {
     
     if [[ $actual_times -ne $expected_times ]]; then
         echo "Expected $cmd to be called $expected_times times, but was called $actual_times times"
+        TEST_FAILED=1
         return 1
     fi
 }
@@ -77,7 +104,7 @@ mock_curl_response() {
         if [[ "$MOCK_CURL_EXIT_CODE" -ne 0 ]]; then
             return "$MOCK_CURL_EXIT_CODE"
         fi
-        echo "$MOCK_CURL_RESPONSE"
+        printf "%s" "$MOCK_CURL_RESPONSE"
         return 0
     }
 }
@@ -109,25 +136,29 @@ mock_jq() {
             local result=""
             if [[ "$args" == *".content[0].text"* ]]; then
                 # For Anthropic responses
-                result=$(echo "$input" | sed -n 's/.*"text":"\([^"]*\(\\.[^"]*\)*\)".*/\1/p' | sed 's/\\"/"/g')
+                result=$(printf "%s" "$input" | sed -n 's/.*"text":"\([^"]*\(\\.[^"]*\)*\)".*/\1/p' | sed 's/\\"/"/g')
             elif [[ "$args" == *".error.message"* ]]; then
                 # For error responses
-                result=$(echo "$input" | sed -n 's/.*"message":"\([^"]*\(\\.[^"]*\)*\)".*/\1/p' | sed 's/\\"/"/g')
+                result=$(printf "%s" "$input" | sed -n 's/.*"message":"\([^"]*\(\\.[^"]*\)*\)".*/\1/p' | sed 's/\\"/"/g')
             elif [[ "$args" == *".error"* ]]; then
                 # For Ollama error responses
-                result=$(echo "$input" | sed -n 's/.*"error":"\([^"]*\(\\.[^"]*\)*\)".*/\1/p' | sed 's/\\"/"/g')
+                result=$(printf "%s" "$input" | sed -n 's/.*"error":"\([^"]*\(\\.[^"]*\)*\)".*/\1/p' | sed 's/\\"/"/g')
             elif [[ "$args" == *".response"* ]]; then
                 # For Ollama responses - handle escaped quotes and newlines
                 # First extract the value, then unescape
-                result=$(echo "$input" | perl -0777 -ne 'if (/"response":\s*"([^"\\]*(\\.[^"\\]*)*)"/) { $val = $1; $val =~ s/\\n/\n/g; $val =~ s/\\"/"/g; print $val; }')
+                result=$(printf "%s" "$input" | perl -0777 -ne 'if (/"response":\s*"([^"\\]*(\\.[^"\\]*)*)"/) { $val = $1; $val =~ s/\\n/\n/g; $val =~ s/\\"/"/g; print $val; }')
             elif [[ "$args" == *".candidates[0].content.parts[0].text"* ]]; then
                 # For Gemini responses
-                result=$(echo "$input" | grep -o '"text":"[^"]*"' | head -1 | sed 's/"text":"\([^"]*\)"/\1/')
+                result=$(printf "%s" "$input" | grep -o '"text":"[^"]*"' | head -1 | sed 's/"text":"\([^"]*\)"/\1/')
+            elif [[ "$args" == *".choices[0].message.content"* ]]; then
+                # For OpenAI-compatible responses
+                result=$(printf "%s" "$input" | sed -n 's/.*"content":"\([^"]*\(\\.[^"]*\)*\)".*/\1/p' | sed 's/\\"/"/g')
             fi
             
             # Return result or empty based on // empty handling
             if [[ -n "$result" ]]; then
-                echo "$result"
+                result=$(printf "%s" "$result" | sed 's/\\n/\n/g; s/\\t/\t/g; s/\\r/\r/g; s/\\"/"/g; s/\\\\/\\/g')
+                printf "%s\n" "$result"
             elif [[ "$args" == *"// empty"* ]]; then
                 # jq returns nothing for empty
                 return 0
@@ -175,6 +206,7 @@ assert_contains() {
     local needle="$2"
     if [[ ! "$haystack" == *"$needle"* ]]; then
         echo "Expected '$haystack' to contain '$needle'"
+        TEST_FAILED=1
         return 1
     fi
 }
@@ -185,6 +217,7 @@ assert_equals() {
     local expected="$2"
     if [[ "$actual" != "$expected" ]]; then
         echo "Expected '$expected' but got '$actual'"
+        TEST_FAILED=1
         return 1
     fi
 }
@@ -195,6 +228,7 @@ assert_not_contains() {
     local needle="$2"
     if [[ "$haystack" == *"$needle"* ]]; then
         echo "Expected '$haystack' to not contain '$needle'"
+        TEST_FAILED=1
         return 1
     fi
 }
@@ -205,6 +239,17 @@ assert_greater_than() {
     local expected="$2"
     if [[ "$actual" -le "$expected" ]]; then
         echo "Expected '$actual' to be greater than '$expected'"
+        TEST_FAILED=1
+        return 1
+    fi
+}
+
+# Assert string is not empty
+assert_not_empty() {
+    local value="$1"
+    if [[ -z "$value" ]]; then
+        echo "Expected value to not be empty"
+        TEST_FAILED=1
         return 1
     fi
 }

@@ -81,11 +81,12 @@ test_validates_openai_provider() {
 
 # Run tests
 echo "Running config tests..."
-test_default_provider && echo "✓ Default provider is anthropic"
-test_default_ollama_model && echo "✓ Default Ollama model is llama3.2"
-test_default_ollama_url && echo "✓ Default Ollama URL is localhost:11434"
-test_validates_anthropic_provider && echo "✓ Validates anthropic provider"
-test_validates_ollama_provider && echo "✓ Validates ollama provider"
-test_rejects_invalid_provider && echo "✓ Rejects invalid provider"
-test_validates_gemini_provider && echo "✓ Validates gemini provider"
-test_validates_openai_provider && echo "✓ Validates openai provider"
+run_test "Default provider is anthropic" test_default_provider
+run_test "Default Ollama model is llama3.2" test_default_ollama_model
+run_test "Default Ollama URL is localhost:11434" test_default_ollama_url
+run_test "Validates anthropic provider" test_validates_anthropic_provider
+run_test "Validates ollama provider" test_validates_ollama_provider
+run_test "Rejects invalid provider" test_rejects_invalid_provider
+run_test "Validates gemini provider" test_validates_gemini_provider
+run_test "Validates openai provider" test_validates_openai_provider
+finish_tests

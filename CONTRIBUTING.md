@@ -35,7 +35,7 @@ Open an issue first for larger features.
 zsh tests/config.test.zsh
 ```
 
-Tests live in `tests/`. Provider tests live in `tests/providers/`. Use `tests/test_helper.zsh` for assertions and mocks.
+Tests live in `tests/`. Provider tests live in `tests/providers/`. Use `tests/test_helper.zsh` for assertions and mocks. Run each test with `run_test` and end test files with `finish_tests`.
 
 Provider changes should cover:
 

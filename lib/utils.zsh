@@ -96,7 +96,7 @@ zsh-ai() {
     local tmpfile=$(mktemp)
     
     # Disable job control notifications (same as widget)
-    setopt local_options no_monitor no_notify
+    setopt local_options no_monitor no_notify no_bg_nice
 
     # Start the API query in background
     (_zsh_ai_execute_command "$query" > "$tmpfile" 2>/dev/null) &

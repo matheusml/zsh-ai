@@ -17,7 +17,7 @@ test_default_model_configuration() {
     # Source config to get default values
     source "$PLUGIN_DIR/lib/config.zsh"
     
-    assert_equals "$ZSH_AI_GEMINI_MODEL" "gemini-2.0-flash"
+    assert_equals "$ZSH_AI_GEMINI_MODEL" "gemini-2.5-flash"
     
     teardown_test_env
 }
@@ -159,7 +159,7 @@ test_handles_curl_connection_failure() {
     local result=$?
     
     assert_equals "$result" "1"
-    assert_contains "$output" "Failed to connect to Google AI API"
+    assert_contains "$output" "Failed to connect to Gemini API"
     
     teardown_test_env
 }
@@ -229,15 +229,16 @@ test_handles_response_with_escaped_newline_without_jq() {
 
 # Run tests
 echo "Running gemini provider tests..."
-test_default_model_configuration && echo "✓ Default model configuration"
-test_validation_fails_without_api_key && echo "✓ Validation fails without API key"
-test_validation_succeeds_with_api_key && echo "✓ Validation succeeds with API key"
-test_routes_queries_to_gemini_provider && echo "✓ Routes queries to gemini provider"
-test_gemini_query_function_exists && echo "✓ Gemini query function exists"
-test_successful_api_call_with_jq && echo "✓ Successful API call with jq available"
-test_successful_api_call_without_jq && echo "✓ Successful API call without jq"
-test_handles_api_error_response && echo "✓ Handles API error response"
-test_handles_curl_connection_failure && echo "✓ Handles curl connection failure"
-test_handles_empty_response && echo "✓ Handles empty response"
-test_handles_response_with_escaped_newline_with_jq && echo "✓ Handles response with escaped newline (with jq)"
-test_handles_response_with_escaped_newline_without_jq && echo "✓ Handles response with escaped newline (without jq)"
+run_test "Default model configuration" test_default_model_configuration
+run_test "Validation fails without API key" test_validation_fails_without_api_key
+run_test "Validation succeeds with API key" test_validation_succeeds_with_api_key
+run_test "Routes queries to gemini provider" test_routes_queries_to_gemini_provider
+run_test "Gemini query function exists" test_gemini_query_function_exists
+run_test "Successful API call with jq available" test_successful_api_call_with_jq
+run_test "Successful API call without jq" test_successful_api_call_without_jq
+run_test "Handles API error response" test_handles_api_error_response
+run_test "Handles curl connection failure" test_handles_curl_connection_failure
+run_test "Handles empty response" test_handles_empty_response
+run_test "Handles response with escaped newline (with jq)" test_handles_response_with_escaped_newline_with_jq
+run_test "Handles response with escaped newline (without jq)" test_handles_response_with_escaped_newline_without_jq
+finish_tests

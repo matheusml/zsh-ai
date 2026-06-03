@@ -1,22 +1,20 @@
 #!/usr/bin/env zsh
 
 # Test suite for JSON escaping functionality
-source "${0:A:h}/../lib/utils.zsh"
+source "${0:A:h}/test_helper.zsh"
+source "$PLUGIN_DIR/lib/utils.zsh"
 
 # Test helper function
 test_json_escape() {
-    local test_name="$1"
-    local input="$2"
-    local expected="$3"
+    local input="$1"
+    local expected="$2"
     local result=$(_zsh_ai_escape_json "$input")
     
-    if [[ "$result" == "$expected" ]]; then
-        echo "✓ $test_name"
-    else
-        echo "✗ $test_name"
+    if [[ "$result" != "$expected" ]]; then
         printf "  Input:    %q\n" "$input"
         printf "  Expected: %q\n" "$expected"
         printf "  Got:      %q\n" "$result"
+        TEST_FAILED=1
         return 1
     fi
 }
@@ -24,40 +22,41 @@ test_json_escape() {
 echo "Testing JSON escaping function..."
 
 # Basic escaping tests
-test_json_escape "Simple string" "hello world" "hello world"
-test_json_escape "Double quotes" 'hello "world"' 'hello \"world\"'
-test_json_escape "Backslashes" 'hello\world' 'hello\\world'
-test_json_escape "Backslash before quote" 'hello\"world' 'hello\\\"world'
+run_test "Simple string" test_json_escape "hello world" "hello world"
+run_test "Double quotes" test_json_escape 'hello "world"' 'hello \"world\"'
+run_test "Backslashes" test_json_escape 'hello\world' 'hello\\world'
+run_test "Backslash before quote" test_json_escape 'hello\"world' 'hello\\\"world'
 
 # Control character tests
-test_json_escape "Newline" $'hello\nworld' $'hello\\nworld'
-test_json_escape "Tab" $'hello\tworld' $'hello\\tworld'
-test_json_escape "Carriage return" $'hello\rworld' $'hello\\rworld'
-test_json_escape "Backspace" $'hello\bworld' $'hello\\bworld'
-test_json_escape "Form feed" $'hello\fworld' $'hello\\fworld'
+run_test "Newline" test_json_escape $'hello\nworld' $'hello\\nworld'
+run_test "Tab" test_json_escape $'hello\tworld' $'hello\\tworld'
+run_test "Carriage return" test_json_escape $'hello\rworld' $'hello\\rworld'
+run_test "Backspace" test_json_escape $'hello\bworld' $'hello\\bworld'
+run_test "Form feed" test_json_escape $'hello\fworld' $'hello\\fworld'
 
 # Complex combinations
-test_json_escape "Multiple escapes" $'line1\n"quoted"\ttab' $'line1\\n\\"quoted\\"\\ttab'
-test_json_escape "Path with spaces" '/Users/name/My Documents/file.txt' '/Users/name/My Documents/file.txt'
-test_json_escape "JSON in string" '{"key": "value"}' '{\"key\": \"value\"}'
+run_test "Multiple escapes" test_json_escape $'line1\n"quoted"\ttab' $'line1\\n\\"quoted\\"\\ttab'
+run_test "Path with spaces" test_json_escape '/Users/name/My Documents/file.txt' '/Users/name/My Documents/file.txt'
+run_test "JSON in string" test_json_escape '{"key": "value"}' '{\"key\": \"value\"}'
 
 # Edge cases
-test_json_escape "Empty string" "" ""
-test_json_escape "Only quotes" '"""' '\"\"\"'
-test_json_escape "Only backslashes" '\\\\' '\\\\\\\\'
-test_json_escape "Mixed control chars" $'start\n\r\t\b\fend' $'start\\n\\r\\t\\b\\fend'
+run_test "Empty string" test_json_escape "" ""
+run_test "Only quotes" test_json_escape '"""' '\"\"\"'
+run_test "Only backslashes" test_json_escape '\\\\' '\\\\\\\\'
+run_test "Mixed control chars" test_json_escape $'start\n\r\t\b\fend' $'start\\n\\r\\t\\b\\fend'
 
 # Test with potential problematic characters from the issue
-test_json_escape "Command with port" "kill process on port 3002" "kill process on port 3002"
+run_test "Command with port" test_json_escape "kill process on port 3002" "kill process on port 3002"
 
 # Test removal of other control characters
-test_json_escape "Null character" $'hello\0world' 'helloworld'
-test_json_escape "Bell character" $'hello\aworld' 'helloworld'
-test_json_escape "Vertical tab" $'hello\vworld' 'helloworld'
+run_test "Null character" test_json_escape $'hello\0world' 'helloworld'
+run_test "Bell character" test_json_escape $'hello\aworld' 'helloworld'
+run_test "Vertical tab" test_json_escape $'hello\vworld' 'helloworld'
 
 # Real-world scenario from context building
-test_json_escape "Directory listing" $'Current directory: /tmp\nFiles: test.txt, data.json' $'Current directory: /tmp\\nFiles: test.txt, data.json'
-test_json_escape "Git status" $'Git: branch=main, status=dirty\nOS: Darwin' $'Git: branch=main, status=dirty\\nOS: Darwin'
+run_test "Directory listing" test_json_escape $'Current directory: /tmp\nFiles: test.txt, data.json' $'Current directory: /tmp\\nFiles: test.txt, data.json'
+run_test "Git status" test_json_escape $'Git: branch=main, status=dirty\nOS: Darwin' $'Git: branch=main, status=dirty\\nOS: Darwin'
 
 echo ""
 echo "All tests completed!"
+finish_tests

@@ -366,27 +366,28 @@ test_includes_os_information() {
 
 # Run tests
 echo "Running context tests..."
-test_detects_nodejs_project && echo "✓ Detects Node.js project"
-test_detects_rust_project && echo "✓ Detects Rust project"
-test_detects_python_project_requirements && echo "✓ Detects Python project with requirements.txt"
-test_detects_python_project_setup && echo "✓ Detects Python project with setup.py"
-test_detects_python_project_pyproject && echo "✓ Detects Python project with pyproject.toml"
-test_detects_ruby_project && echo "✓ Detects Ruby project"
-test_detects_go_project && echo "✓ Detects Go project"
-test_detects_php_project && echo "✓ Detects PHP project"
-test_detects_java_project_pom && echo "✓ Detects Java project with pom.xml"
-test_detects_java_project_gradle && echo "✓ Detects Java project with build.gradle"
-test_detects_docker_project_compose && echo "✓ Detects Docker project with docker-compose.yml"
-test_detects_docker_project_dockerfile && echo "✓ Detects Docker project with Dockerfile"
-test_returns_unknown_for_unrecognized_project && echo "✓ Returns unknown for unrecognized project"
-test_returns_empty_for_non_git_directory && echo "✓ Returns empty string for non-git directory"
-test_gets_git_context_for_repository && echo "✓ Gets git context for git repository"
-test_detects_dirty_git_status && echo "✓ Detects dirty git status"
-test_shows_current_directory_in_context && echo "✓ Shows current directory in context"
-test_lists_files_when_less_than_20 && echo "✓ Lists files when less than 20"
-test_truncates_file_list_at_10_files && echo "✓ Truncates file list at 10 files"
-test_shows_file_count_for_many_files && echo "✓ Shows file count for directories with many files"
-test_builds_complete_context && echo "✓ Builds complete context"
-test_builds_context_without_git && echo "✓ Builds context without git"
-test_builds_context_for_unknown_project && echo "✓ Builds context for unknown project"
-test_includes_os_information && echo "✓ Includes OS information"
+run_test "Detects Node.js project" test_detects_nodejs_project
+run_test "Detects Rust project" test_detects_rust_project
+run_test "Detects Python project with requirements.txt" test_detects_python_project_requirements
+run_test "Detects Python project with setup.py" test_detects_python_project_setup
+run_test "Detects Python project with pyproject.toml" test_detects_python_project_pyproject
+run_test "Detects Ruby project" test_detects_ruby_project
+run_test "Detects Go project" test_detects_go_project
+run_test "Detects PHP project" test_detects_php_project
+run_test "Detects Java project with pom.xml" test_detects_java_project_pom
+run_test "Detects Java project with build.gradle" test_detects_java_project_gradle
+run_test "Detects Docker project with docker-compose.yml" test_detects_docker_project_compose
+run_test "Detects Docker project with Dockerfile" test_detects_docker_project_dockerfile
+run_test "Returns unknown for unrecognized project" test_returns_unknown_for_unrecognized_project
+run_test "Returns empty string for non-git directory" test_returns_empty_for_non_git_directory
+run_test "Gets git context for git repository" test_gets_git_context_for_repository
+run_test "Detects dirty git status" test_detects_dirty_git_status
+run_test "Shows current directory in context" test_shows_current_directory_in_context
+run_test "Lists files when less than 20" test_lists_files_when_less_than_20
+run_test "Truncates file list at 10 files" test_truncates_file_list_at_10_files
+run_test "Shows file count for directories with many files" test_shows_file_count_for_many_files
+run_test "Builds complete context" test_builds_complete_context
+run_test "Builds context without git" test_builds_context_without_git
+run_test "Builds context for unknown project" test_builds_context_for_unknown_project
+run_test "Includes OS information" test_includes_os_information
+finish_tests

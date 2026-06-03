@@ -86,7 +86,7 @@ main() {
     echo "================================"
     
     # Exit based on results
-    if [[ $TOTAL_FAILED -gt 0 ]]; then
+    if [[ $TOTAL_FAILED -gt 0 || ${#FAILED_FILES} -gt 0 ]]; then
         exit 1
     else
         exit 0

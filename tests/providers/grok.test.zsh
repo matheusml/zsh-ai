@@ -181,18 +181,14 @@ test_uses_xai_api_key() {
     assert_not_empty "$result"
 }
 
-# Add missing assert_not_empty function
-assert_not_empty() {
-    [[ -n "$1" ]]
-}
-
 # Run tests
 echo "Running Grok provider tests..."
-test_grok_query_success && echo "✓ Grok query success"
-test_grok_query_error_response && echo "✓ Grok error response handling"
-test_grok_json_escaping && echo "✓ Grok JSON escaping"
-test_handles_response_with_newline && echo "✓ Handles response with trailing newline"
-test_handles_response_without_jq && echo "✓ Handles response without jq and with newline"
-test_uses_configurable_api_url && echo "✓ Uses configurable API URL (ZSH_AI_GROK_URL)"
-test_uses_max_completion_tokens && echo "✓ Uses max_completion_tokens parameter"
-test_uses_xai_api_key && echo "✓ Uses XAI_API_KEY environment variable"
+run_test "Grok query success" test_grok_query_success
+run_test "Grok error response handling" test_grok_query_error_response
+run_test "Grok JSON escaping" test_grok_json_escaping
+run_test "Handles response with trailing newline" test_handles_response_with_newline
+run_test "Handles response without jq and with newline" test_handles_response_without_jq
+run_test "Uses configurable API URL (ZSH_AI_GROK_URL)" test_uses_configurable_api_url
+run_test "Uses max_completion_tokens parameter" test_uses_max_completion_tokens
+run_test "Uses XAI_API_KEY environment variable" test_uses_xai_api_key
+finish_tests

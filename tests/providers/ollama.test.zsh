@@ -403,21 +403,22 @@ test_handles_thinking_model_response() {
 
 # Run tests
 echo "Running ollama provider tests..."
-test_check_ollama_running_success && echo "✓ Check if Ollama is running - success"
-test_check_ollama_running_failure && echo "✓ Check if Ollama is running - failure"
-test_successful_api_call_with_jq && echo "✓ Successful API call with jq available"
-test_successful_api_call_without_jq && echo "✓ Successful API call without jq"
-test_handles_api_error_response_with_jq && echo "✓ Handles API error response with jq"
-test_handles_curl_connection_failure && echo "✓ Handles curl connection failure"
-test_handles_empty_response_with_jq && echo "✓ Handles empty response with jq"
-test_handles_malformed_response_without_jq && echo "✓ Handles malformed response without jq"
-test_uses_correct_model_from_config && echo "✓ Uses correct model from config"
-test_uses_correct_url_from_config && echo "✓ Uses correct URL from config"
-test_removes_trailing_newlines_from_response && echo "✓ Removes trailing newlines from response"
-test_escapes_quotes_in_query && echo "✓ Escapes quotes in query"
-test_includes_context_in_api_call && echo "✓ Includes context in API call"
-test_sets_correct_temperature_option && echo "✓ Sets correct temperature option"
-test_handles_response_with_escaped_newline_with_jq && echo "✓ Handles response with escaped newline (with jq)"
-test_handles_response_with_escaped_newline_without_jq && echo "✓ Handles response with escaped newline (without jq)"
-test_handles_midfield_newline_without_jq && echo "✓ Handles mid-field newline without jq"
-test_handles_thinking_model_response && echo "✓ Handles thinking model response"
+run_test "Check if Ollama is running - success" test_check_ollama_running_success
+run_test "Check if Ollama is running - failure" test_check_ollama_running_failure
+run_test "Successful API call with jq available" test_successful_api_call_with_jq
+run_test "Successful API call without jq" test_successful_api_call_without_jq
+run_test "Handles API error response with jq" test_handles_api_error_response_with_jq
+run_test "Handles curl connection failure" test_handles_curl_connection_failure
+run_test "Handles empty response with jq" test_handles_empty_response_with_jq
+run_test "Handles malformed response without jq" test_handles_malformed_response_without_jq
+run_test "Uses correct model from config" test_uses_correct_model_from_config
+run_test "Uses correct URL from config" test_uses_correct_url_from_config
+run_test "Removes trailing newlines from response" test_removes_trailing_newlines_from_response
+run_test "Escapes quotes in query" test_escapes_quotes_in_query
+run_test "Includes context in API call" test_includes_context_in_api_call
+run_test "Sets correct temperature option" test_sets_correct_temperature_option
+run_test "Handles response with escaped newline (with jq)" test_handles_response_with_escaped_newline_with_jq
+run_test "Handles response with escaped newline (without jq)" test_handles_response_with_escaped_newline_without_jq
+run_test "Handles mid-field newline without jq" test_handles_midfield_newline_without_jq
+run_test "Handles thinking model response" test_handles_thinking_model_response
+finish_tests
