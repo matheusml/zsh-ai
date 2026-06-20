@@ -21,6 +21,14 @@ _zsh_ai_escape_json() {
     printf '%s' "$1" | perl -0777 -pe 's/\\/\\\\/g; s/"/\\"/g; s/\t/\\t/g; s/\r/\\r/g; s/\n/\\n/g; s/\f/\\f/g; s/\x08/\\b/g; s/[\x00-\x07\x0B\x0E-\x1F]//g'
 }
 
+# Strip <think>...</think> reasoning blocks emitted by reasoning models.
+# Provider-agnostic: reasoning models (qwen3, deepseek-r1, gpt-oss, etc.) prepend
+# chain-of-thought before the final command. This removes those blocks and trims
+# surrounding whitespace. It is a harmless no-op when no tags are present.
+_zsh_ai_strip_think() {
+    printf '%s' "$1" | perl -0777 -pe 's{<think>.*?</think>}{}sg; s/\A\s+//; s/\s+\z//'
+}
+
 # Main query function that routes to the appropriate provider
 _zsh_ai_query() {
     local query="$1"
@@ -52,7 +60,10 @@ _zsh_ai_query() {
 _zsh_ai_execute_command() {
     local query="$1"
     local cmd=$(_zsh_ai_query "$query")
-    
+
+    # Remove any reasoning-model <think>...</think> blocks before using the command
+    cmd=$(_zsh_ai_strip_think "$cmd")
+
     if [[ -n "$cmd" ]] && [[ "$cmd" != "Error:"* ]] && [[ "$cmd" != "API Error:"* ]]; then
         echo "$cmd"
         return 0

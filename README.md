@@ -117,6 +117,13 @@ export ZSH_AI_TRIGGER=",,"
 export ZSH_AI_COMMENT_HOOK="false"
 ```
 
+### Reasoning models
+
+Reasoning models (qwen3, deepseek-r1, gpt-oss, and similar) emit a
+`<think>...</think>` chain-of-thought before the final command. zsh-ai strips
+those blocks automatically across every provider, so only the command lands in
+your prompt — no extra configuration needed.
+
 ## Docs
 
 - [Installation](INSTALL.md)

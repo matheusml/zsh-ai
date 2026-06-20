@@ -467,6 +467,78 @@ test_get_system_prompt_with_empty_extension() {
     teardown_test_env
 }
 
+# _zsh_ai_strip_think tests
+test_strip_think_removes_block() {
+    setup_test_env
+
+    local output
+    output=$(_zsh_ai_strip_think "<think>let me reason about this</think>ls -la")
+    assert_equals "$output" "ls -la"
+
+    teardown_test_env
+}
+
+test_strip_think_removes_multiline_block() {
+    setup_test_env
+
+    local input=$'<think>\nfirst the user wants files\nthen sort them\n</think>\nls -la | sort'
+    local output
+    output=$(_zsh_ai_strip_think "$input")
+    assert_equals "$output" "ls -la | sort"
+
+    teardown_test_env
+}
+
+test_strip_think_noop_without_tags() {
+    setup_test_env
+
+    local output
+    output=$(_zsh_ai_strip_think "find . -name '*.py'")
+    assert_equals "$output" "find . -name '*.py'"
+
+    teardown_test_env
+}
+
+test_strip_think_trims_surrounding_whitespace() {
+    setup_test_env
+
+    local output
+    output=$(_zsh_ai_strip_think $'  <think>x</think>  echo hi  ')
+    assert_equals "$output" "echo hi"
+
+    teardown_test_env
+}
+
+test_strip_think_removes_multiple_blocks() {
+    setup_test_env
+
+    local output
+    output=$(_zsh_ai_strip_think "<think>a</think>echo <think>b</think>done")
+    assert_equals "$output" "echo done"
+
+    teardown_test_env
+}
+
+test_strip_think_applied_in_execute_command() {
+    setup_test_env
+    export ZSH_AI_PROVIDER="anthropic"
+    export ANTHROPIC_API_KEY="test-key"
+
+    # Reasoning model returns chain-of-thought before the command
+    _zsh_ai_query() {
+        echo "<think>the user wants a listing</think>ls -la"
+    }
+
+    local output
+    output=$(_zsh_ai_execute_command "list files")
+    local result=$?
+
+    assert_equals "$result" "0"
+    assert_equals "$output" "ls -la"
+
+    teardown_test_env
+}
+
 # Run tests
 echo "Running utils tests..."
 run_test "Routes to Anthropic provider when configured" test_routes_to_anthropic_provider
@@ -489,4 +561,10 @@ run_test "System prompt includes custom extension when set" test_get_system_prom
 run_test "System prompt works without extension" test_get_system_prompt_without_extension
 run_test "System prompt handles multiline extension" test_get_system_prompt_with_multiline_extension
 run_test "System prompt handles empty extension" test_get_system_prompt_with_empty_extension
+run_test "Strips <think> block from response" test_strip_think_removes_block
+run_test "Strips multiline <think> block" test_strip_think_removes_multiline_block
+run_test "Leaves response without tags unchanged" test_strip_think_noop_without_tags
+run_test "Trims whitespace around stripped command" test_strip_think_trims_surrounding_whitespace
+run_test "Strips multiple <think> blocks" test_strip_think_removes_multiple_blocks
+run_test "Applies <think> stripping in execute command" test_strip_think_applied_in_execute_command
 finish_tests
