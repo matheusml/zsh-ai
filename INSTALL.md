@@ -97,7 +97,12 @@ zsh-ai-codex status
 zsh-ai-codex logout
 ```
 
-Tokens are stored by `zsh-ai` at `~/.local/share/zsh-ai/auth.json` with restricted permissions. This is separate from Codex CLI auth storage.
+Codex OAuth tokens are stored in `ZSH_AI_CODEX_AUTH_FILE` with restricted permissions.
+This is separate from Codex CLI auth storage.
+
+By default, `ZSH_AI_CODEX_AUTH_FILE` points to
+- `$XDG_DATA_HOME/zsh-ai/auth.json` or `~/.local/share/zsh-ai/auth.json` on Linux.
+- `~/Library/Application Support/zsh-ai` on macOS.
 
 ### Google Gemini
 
