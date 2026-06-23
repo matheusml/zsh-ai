@@ -41,7 +41,7 @@ test_openai_query_success() {
 test_openai_query_error_response() {
     export OPENAI_API_KEY="test-key"
     export ZSH_AI_OPENAI_MODEL="gpt-5.4-mini"
-
+    
     # Override curl to return an error
     curl() {
         if [[ "$*" == *"https://api.openai.com/v1/chat/completions"* ]]; then
@@ -56,7 +56,7 @@ EOF
         fi
         command curl "$@"
     }
-
+    
     local result=$(_zsh_ai_query_openai "list files")
     assert_contains "$result" "API Error:"
 }
@@ -64,7 +64,7 @@ EOF
 test_openai_json_escaping() {
     export OPENAI_API_KEY="test-key"
     export ZSH_AI_OPENAI_MODEL="gpt-5.4-mini"
-
+    
     # Test with special characters
     local result=$(_zsh_ai_query_openai "test \"quotes\" and \$variables")
     # Should not fail due to JSON escaping issues
@@ -206,6 +206,27 @@ test_includes_temperature_for_gpt4_models() {
     local captured_payload=$(capture_openai_payload_for_model "gpt-4o-mini")
     assert_contains "$captured_payload" '"temperature": 0.3'
 }
+
+# Run tests
+echo "Running OpenAI provider tests..."
+run_test "OpenAI query success" test_openai_query_success
+run_test "OpenAI error response handling" test_openai_query_error_response
+run_test "OpenAI JSON escaping" test_openai_json_escaping
+run_test "Handles response with trailing newline" test_handles_response_with_newline
+run_test "Handles response without jq and with newline" test_handles_response_without_jq
+run_test "Uses default URL when not configured" test_uses_default_url_when_not_configured
+run_test "Uses custom URL when configured" test_uses_custom_url_when_configured
+run_test "Uses Perplexity URL" test_uses_perplexity_url
+run_test "Uses max_tokens for gpt-4 models" test_uses_max_tokens_for_gpt4_models
+run_test "Uses max_tokens for gpt-3.5 models" test_uses_max_tokens_for_gpt35_models
+run_test "Uses max_completion_tokens for gpt-5 models" test_uses_max_completion_tokens_for_gpt5_models
+run_test "Uses max_completion_tokens for o1 models" test_uses_max_completion_tokens_for_o1_models
+run_test "Omits temperature for gpt-5 models" test_omits_temperature_for_gpt5_models
+run_test "Includes temperature for gpt-4 models" test_includes_temperature_for_gpt4_models
+
+# Tests for keyless OpenAI-compatible endpoints
+echo ""
+echo "Running OpenAI-compatible (keyless) tests..."
 
 test_openai_requires_key_for_default_url() {
     unset OPENAI_API_KEY
@@ -371,25 +392,6 @@ test_openai_falls_back_to_openai_api_key() {
     return 0
 }
 
-# Run tests
-echo "Running OpenAI provider tests..."
-run_test "OpenAI query success" test_openai_query_success
-run_test "OpenAI error response handling" test_openai_query_error_response
-run_test "OpenAI JSON escaping" test_openai_json_escaping
-run_test "Handles response with trailing newline" test_handles_response_with_newline
-run_test "Handles response without jq and with newline" test_handles_response_without_jq
-run_test "Uses default URL when not configured" test_uses_default_url_when_not_configured
-run_test "Uses custom URL when configured" test_uses_custom_url_when_configured
-run_test "Uses Perplexity URL" test_uses_perplexity_url
-run_test "Uses max_tokens for gpt-4 models" test_uses_max_tokens_for_gpt4_models
-run_test "Uses max_tokens for gpt-3.5 models" test_uses_max_tokens_for_gpt35_models
-run_test "Uses max_completion_tokens for gpt-5 models" test_uses_max_completion_tokens_for_gpt5_models
-run_test "Uses max_completion_tokens for o1 models" test_uses_max_completion_tokens_for_o1_models
-run_test "Omits temperature for gpt-5 models" test_omits_temperature_for_gpt5_models
-run_test "Includes temperature for gpt-4 models" test_includes_temperature_for_gpt4_models
-
-echo ""
-echo "Running OpenAI-compatible (keyless) tests..."
 run_test "Requires API key for default OpenAI URL" test_openai_requires_key_for_default_url
 run_test "Works without API key for custom URL" test_openai_works_without_key_for_custom_url
 run_test "Omits Authorization header when no API key" test_openai_query_without_auth_header
