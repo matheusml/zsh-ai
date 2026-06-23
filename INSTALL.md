@@ -72,6 +72,33 @@ export OPENAI_API_KEY="your-api-key-here"
 
 Key: [OpenAI](https://platform.openai.com/api-keys)
 
+### ChatGPT/Codex OAuth
+
+Use the OpenAI provider with ChatGPT/Codex OAuth if you want terminal device-code login instead of an OpenAI API key:
+
+```bash
+export ZSH_AI_PROVIDER="openai"
+export ZSH_AI_OPENAI_AUTH="codex"
+export ZSH_AI_OPENAI_MODEL="gpt-5.4-mini"
+```
+
+Reload your shell after loading this config, then sign in:
+
+```bash
+zsh-ai-codex login
+```
+
+The login flow prints a URL and code. Open the URL on any device, enter the code, and return to the terminal. No graphical environment is required on the machine running `zsh-ai`.
+
+Useful commands:
+
+```bash
+zsh-ai-codex status
+zsh-ai-codex logout
+```
+
+Tokens are stored by `zsh-ai` at `~/.local/share/zsh-ai/auth.json` with restricted permissions. This is separate from Codex CLI auth storage.
+
 ### Google Gemini
 
 ```bash
@@ -175,6 +202,8 @@ You should see a command like `date` appear in your prompt.
 export ZSH_AI_PROVIDER="anthropic"
 export ZSH_AI_ANTHROPIC_MODEL="claude-haiku-4-5"
 export ZSH_AI_OPENAI_MODEL="gpt-5.4-mini"
+export ZSH_AI_OPENAI_AUTH="api_key"
+export ZSH_AI_CODEX_AUTH_FILE="$HOME/.local/share/zsh-ai/auth.json"
 export ZSH_AI_GEMINI_MODEL="gemini-2.5-flash"
 export ZSH_AI_OLLAMA_MODEL="llama3.2"
 export ZSH_AI_MISTRAL_MODEL="mistral-small-latest"

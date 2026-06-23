@@ -63,6 +63,11 @@ _zsh_ai_execute_command() {
     fi
 }
 
+# Get the epoch time in milliseconds
+_zsh_ai_now_ms() {
+    printf "%s000" "$(date +%s)"
+}
+
 # Optional: Add a helper function for users who prefer explicit commands
 zsh-ai() {
     if [[ $# -eq 0 ]]; then
@@ -133,4 +138,28 @@ zsh-ai() {
         echo ""  # Blank line for spacing
         return 1
     fi
+}
+
+zsh-ai-codex() {
+    local codex_command="${1:-}"
+    [[ $# -gt 0 ]] && shift
+
+    case "$codex_command" in
+        login)
+            _zsh_ai_codex_login "$@"
+            return $?
+            ;;
+        logout)
+            _zsh_ai_codex_logout "$@"
+            return $?
+            ;;
+        status)
+            _zsh_ai_codex_status "$@"
+            return $?
+            ;;
+        *)
+            echo "Usage: zsh-ai-codex login|logout|status"
+            return 1
+            ;;
+    esac
 }

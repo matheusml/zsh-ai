@@ -100,6 +100,24 @@ export ZSH_AI_PROVIDER="openai"
 export OPENAI_API_KEY="your-key-here"
 ```
 
+Use ChatGPT/Codex OAuth instead of an OpenAI API key:
+
+```bash
+export ZSH_AI_PROVIDER="openai"
+export ZSH_AI_OPENAI_AUTH="codex"
+export ZSH_AI_OPENAI_MODEL="gpt-5.4-mini"
+```
+
+Then sign in from the terminal:
+
+```bash
+zsh-ai-codex login
+zsh-ai-codex status
+```
+
+Codex OAuth tokens are stored in `ZSH_AI_CODEX_AUTH_FILE`, which by default points to `~/.local/share/zsh-ai/auth.json` with restricted permissions.
+Sign out with `zsh-ai-codex logout`.
+
 Add command preferences without replacing the built-in quoting rules:
 
 ```bash

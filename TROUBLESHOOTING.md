@@ -26,6 +26,54 @@ Or switch to Ollama:
 export ZSH_AI_PROVIDER="ollama"
 ```
 
+If you use ChatGPT/Codex OAuth, no OpenAI API key is required. Configure Codex auth and sign in instead:
+
+```bash
+export ZSH_AI_PROVIDER="openai"
+export ZSH_AI_OPENAI_AUTH="codex"
+zsh-ai-codex login
+```
+
+## ChatGPT/Codex Login Required
+
+```bash
+Run zsh-ai-codex login to sign in with ChatGPT/Codex.
+```
+
+Run:
+
+```bash
+zsh-ai-codex login
+```
+
+The command prints a URL and code. Open the URL on any device, enter the code, and return to the terminal.
+
+Check auth state with:
+
+```bash
+zsh-ai-codex status
+```
+
+## ChatGPT/Codex Token Expired Or Revoked
+
+```bash
+Run zsh-ai-codex login to sign in again.
+```
+
+Run `zsh-ai-codex login` again. If the problem persists, sign out and sign in again:
+
+```bash
+zsh-ai-codex logout
+zsh-ai-codex login
+```
+
+Codex OAuth tokens are stored at `~/.local/share/zsh-ai/auth.json`. The parent directory should be private and the file should be readable only by you:
+
+```bash
+chmod 700 ~/.local/share/zsh-ai
+chmod 600 ~/.local/share/zsh-ai/auth.json
+```
+
 ## Ollama Is Not Running
 
 ```bash

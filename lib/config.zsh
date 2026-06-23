@@ -2,7 +2,20 @@
 
 # Configuration and validation for zsh-ai
 
+# Get default zsh-ai data directory
+_zsh_ai_data_dir() {
+    case $(uname) in
+    "Linux")
+        printf "%s" "${XDG_DATA_HOME:-$HOME/.local/share}/zsh-ai"
+        ;;
+    "Darwin")
+        printf "%s" "$HOME/Library/Application Support/zsh-ai"
+        ;;
+    esac
+}
+
 # Set default values for configuration
+: ${ZSH_AI_DATA_DIR:=$(_zsh_ai_data_dir)} # default directory to store auth tokens
 : ${ZSH_AI_PROVIDER:="anthropic"}  # Default to anthropic for backwards compatibility
 : ${ZSH_AI_OLLAMA_MODEL:="llama3.2"}  # Popular fast model
 : ${ZSH_AI_OLLAMA_URL:="http://localhost:11434"}  # Default Ollama URL
@@ -10,6 +23,9 @@
 : ${ZSH_AI_OPENAI_MODEL:="gpt-5.4-mini"}  # Default to GPT-5.4 mini (gpt-5-mini is deprecated)
 : ${ZSH_AI_OPENAI_URL:="https://api.openai.com/v1/chat/completions"}  # Default to OpenAI
 : ${ZSH_AI_OPENAI_THINKING:=""}  # Configure thinking for supported models: 0 or 1, default unset/empty
+: ${ZSH_AI_CODEX_MODEL:="gpt-5.4-mini"}  # Default to GPT-5.4 mini (gpt-5-mini is deprecated)
+: ${ZSH_AI_CODEX_ISSUER:="https://auth.openai.com"}  # ChatGPT/Codex OAuth issuer
+: ${ZSH_AI_CODEX_URL:="https://chatgpt.com/backend-api/codex/responses"}  # ChatGPT/Codex Responses URL
 : ${ZSH_AI_QWEN_MODEL:="qwen-flash"}  # Default to qwen-flash (fast, low-cost Qwen3 tier)
 : ${ZSH_AI_QWEN_URL:="https://dashscope.aliyuncs.com/compatible-mode/v1/chat/completions"}  # Default to Qwen API
 : ${ZSH_AI_ANTHROPIC_MODEL:="claude-haiku-4-5"}  # Default Anthropic model
@@ -56,9 +72,15 @@ _zsh_ai_validate_config() {
             return 1
         fi
     elif [[ "$ZSH_AI_PROVIDER" == "openai" ]]; then
+        if [[ "$ZSH_AI_OPENAI_AUTH" != "api_key" && "$ZSH_AI_OPENAI_AUTH" != "codex" ]]; then
+            echo "zsh-ai: Warning: Invalid ZSH_AI_OPENAI_AUTH: ${ZSH_AI_OPENAI_AUTH}. Plugin will not function."
+            echo "zsh-ai: Set ZSH_AI_OPENAI_AUTH to \"api_key\" or \"codex\"."
+            return 1
+        fi
+
         # Only require API key when using the default OpenAI URL
         # Custom URLs (local servers, proxies) may not need authentication
-        if [[ -z "$OPENAI_API_KEY" && -z "$ZSH_AI_OPENAI_API_KEY" && "$ZSH_AI_OPENAI_URL" == "https://api.openai.com/v1/chat/completions" ]]; then
+        if [[ "$ZSH_AI_OPENAI_AUTH" == "api_key" && -z "$OPENAI_API_KEY" && -z "$ZSH_AI_OPENAI_API_KEY" && "$ZSH_AI_OPENAI_URL" == "https://api.openai.com/v1/chat/completions" ]]; then
             echo "zsh-ai: Warning: OPENAI_API_KEY not set. Plugin will not function."
             echo "zsh-ai: Set OPENAI_API_KEY or use ZSH_AI_PROVIDER=ollama for local models."
             return 1
