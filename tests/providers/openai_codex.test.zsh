@@ -6,7 +6,6 @@
 source "${0:A:h}/../test_helper.zsh"
 source "${PLUGIN_DIR}/lib/config.zsh"
 source "${PLUGIN_DIR}/lib/context.zsh"
-source "${PLUGIN_DIR}/lib/providers/openai.zsh"
 source "${PLUGIN_DIR}/lib/providers/openai_codex/auth.zsh"
 source "${PLUGIN_DIR}/lib/providers/openai_codex/response.zsh"
 source "${PLUGIN_DIR}/lib/utils.zsh"
@@ -16,8 +15,7 @@ echo "Running OpenAI Codex provider tests..."
 test_openai_codex_auth_passes_validation_without_key() {
     unset OPENAI_API_KEY
     unset ZSH_AI_OPENAI_API_KEY
-    export ZSH_AI_PROVIDER="openai"
-    export ZSH_AI_OPENAI_AUTH="codex"
+    export ZSH_AI_PROVIDER="openai_codex"
     export ZSH_AI_OPENAI_URL="https://api.openai.com/v1/chat/completions"
 
     local result
@@ -25,18 +23,6 @@ test_openai_codex_auth_passes_validation_without_key() {
     local exit_code=$?
 
     assert_equals "$exit_code" "0"
-}
-
-test_openai_rejects_invalid_auth_mode() {
-    export ZSH_AI_PROVIDER="openai"
-    export ZSH_AI_OPENAI_AUTH="bad"
-
-    local result
-    result=$(_zsh_ai_validate_config 2>&1)
-    local exit_code=$?
-
-    assert_equals "$exit_code" "1"
-    assert_contains "$result" "Invalid ZSH_AI_OPENAI_AUTH"
 }
 
 test_codex_parse_top_level_output_text() {
@@ -213,7 +199,7 @@ test_codex_request_uses_responses_endpoint_payload_and_headers() {
         return 1
     }
 
-    local result=$(_zsh_ai_query_openai "list files")
+    local result=$(_zsh_ai_query_openai_codex "list files")
     local curl_args=$(<"$args_file")
     local payload=$(<"$payload_file")
     rm -rf -- "$temp_dir"
@@ -250,7 +236,7 @@ test_codex_http_400_surfaces_backend_message() {
     }
 
     local result
-    result=$(_zsh_ai_query_openai "list files")
+    result=$(_zsh_ai_query_openai_codex "list files")
     local exit_code=$?
     rm -rf -- "$temp_dir"
 
@@ -275,7 +261,7 @@ test_codex_request_omits_account_header_when_missing() {
         return 1
     }
 
-    _zsh_ai_query_openai "where am i" >/dev/null
+    _zsh_ai_query_openai_codex "where am i" >/dev/null
     local curl_args=$(<"$args_file")
     rm -rf -- "$temp_dir"
     rm -f -- "$args_file"
@@ -309,7 +295,7 @@ test_codex_expired_token_refreshes_before_request() {
         return 1
     }
 
-    local result=$(_zsh_ai_query_openai "date")
+    local result=$(_zsh_ai_query_openai_codex "date")
     local curl_args=$(<"$args_file")
     local refresh_called=$(<"$refresh_count_file")
     rm -rf -- "$temp_dir"
@@ -353,7 +339,7 @@ test_codex_401_refreshes_and_retries_once() {
         return 1
     }
 
-    local result=$(_zsh_ai_query_openai "who am i")
+    local result=$(_zsh_ai_query_openai_codex "who am i")
     local endpoint_calls=$(<"$endpoint_count_file")
     local refresh_called=$(<"$refresh_count_file")
     rm -rf -- "$temp_dir"
@@ -370,7 +356,7 @@ test_codex_missing_auth_file_prompts_login() {
     export ZSH_AI_OPENAI_AUTH="codex"
 
     local result
-    result=$(_zsh_ai_query_openai "list files")
+    result=$(_zsh_ai_query_openai_codex "list files")
     local exit_code=$?
     rm -rf -- "$temp_dir"
 
@@ -561,7 +547,6 @@ test_codex_login_surfaces_cancelled_poll() {
 }
 
 run_test "OpenAI Codex auth passes validation without key" test_openai_codex_auth_passes_validation_without_key
-run_test "OpenAI rejects invalid auth mode" test_openai_rejects_invalid_auth_mode
 run_test "Codex parses top-level output_text" test_codex_parse_top_level_output_text
 run_test "Codex parses nested output text" test_codex_parse_nested_output_text
 run_test "Codex parses SSE output text delta" test_codex_parse_sse_output_text_delta
