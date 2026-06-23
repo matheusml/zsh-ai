@@ -63,7 +63,7 @@ export ZSH_AI_PROVIDER="ollama"
 
 Download: [ollama.ai](https://ollama.ai/download)
 
-### OpenAI
+### OpenAI API
 
 ```bash
 export ZSH_AI_PROVIDER="openai"
@@ -72,14 +72,14 @@ export OPENAI_API_KEY="your-api-key-here"
 
 Key: [OpenAI](https://platform.openai.com/api-keys)
 
-### ChatGPT/Codex OAuth
+### OpenAI ChatGPT/Codex Subscription
 
-Use the OpenAI provider with ChatGPT/Codex OAuth if you want terminal device-code login instead of an OpenAI API key:
 
 ```bash
-export ZSH_AI_PROVIDER="openai"
-export ZSH_AI_OPENAI_AUTH="codex"
-export ZSH_AI_OPENAI_MODEL="gpt-5.4-mini"
+export ZSH_AI_PROVIDER="openai_codex"
+export ZSH_AI_CODEX_MODEL="gpt-5.4-mini"
+export ZSH_AI_CODEX_ISSUER="https://auth.openai.com"
+export ZSH_AI_CODEX_URL="https://chatgpt.com/backend-api/codex/responses"
 ```
 
 Reload your shell after loading this config, then sign in:
@@ -88,7 +88,8 @@ Reload your shell after loading this config, then sign in:
 zsh-ai-codex login
 ```
 
-The login flow prints a URL and code. Open the URL on any device, enter the code, and return to the terminal. No graphical environment is required on the machine running `zsh-ai`.
+The login flow prints a URL and code.
+Open the URL on any device, enter the code, and return to the terminal.
 
 Useful commands:
 
@@ -97,11 +98,9 @@ zsh-ai-codex status
 zsh-ai-codex logout
 ```
 
-Codex OAuth tokens are stored in `ZSH_AI_CODEX_AUTH_FILE` with restricted permissions.
-This is separate from Codex CLI auth storage.
-
-By default, `ZSH_AI_CODEX_AUTH_FILE` points to
-- `$XDG_DATA_HOME/zsh-ai/auth.json` or `~/.local/share/zsh-ai/auth.json` on Linux.
+Codex OAuth tokens are stored in `ZSH_AI_DATA_DIR/openai_codex/auth.json` with restricted permissions.
+By default, `ZSH_AI_DATA_DIR` points to
+- `$XDG_DATA_HOME/zsh-ai` or `~/.local/share/zsh-ai` on Linux.
 - `~/Library/Application Support/zsh-ai` on macOS.
 
 ### Google Gemini
@@ -207,8 +206,7 @@ You should see a command like `date` appear in your prompt.
 export ZSH_AI_PROVIDER="anthropic"
 export ZSH_AI_ANTHROPIC_MODEL="claude-haiku-4-5"
 export ZSH_AI_OPENAI_MODEL="gpt-5.4-mini"
-export ZSH_AI_OPENAI_AUTH="api_key"
-export ZSH_AI_CODEX_AUTH_FILE="$HOME/.local/share/zsh-ai/auth.json"
+export ZSH_AI_CODEX_MODEL="gpt-5.4-mini"
 export ZSH_AI_GEMINI_MODEL="gemini-2.5-flash"
 export ZSH_AI_OLLAMA_MODEL="llama3.2"
 export ZSH_AI_MISTRAL_MODEL="mistral-small-latest"
@@ -221,6 +219,8 @@ Provider URLs are configurable too:
 ```bash
 export ZSH_AI_ANTHROPIC_URL="https://api.anthropic.com/v1/messages"
 export ZSH_AI_OPENAI_URL="https://api.openai.com/v1/chat/completions"
+export ZSH_AI_CODEX_ISSUER="https://auth.openai.com"
+export ZSH_AI_CODEX_URL="https://chatgpt.com/backend-api/codex/responses"
 export ZSH_AI_OLLAMA_URL="http://localhost:11434"
 export ZSH_AI_MISTRAL_URL="https://api.mistral.ai/v1/chat/completions"
 export ZSH_AI_GROK_URL="https://api.x.ai/v1/chat/completions"

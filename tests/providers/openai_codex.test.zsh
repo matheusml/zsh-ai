@@ -378,6 +378,38 @@ test_codex_missing_auth_file_prompts_login() {
     assert_contains "$result" "zsh-ai-codex login"
 }
 
+test_codex_unreadable_auth_file_reports_permissions() {
+    local temp_dir=$(mktemp -d)
+    typeset -g _ZSH_AI_CODEX_AUTH_FILE="$temp_dir/auth.json"
+    print -r -- '{"access_token":"access-token","refresh_token":"refresh-token"}' > "$_ZSH_AI_CODEX_AUTH_FILE"
+    chmod 000 -- "$_ZSH_AI_CODEX_AUTH_FILE"
+
+    local result
+    result=$(_zsh_ai_codex_load_auth 2>&1)
+    local exit_code=$?
+    chmod 600 -- "$_ZSH_AI_CODEX_AUTH_FILE"
+    rm -rf -- "$temp_dir"
+
+    assert_equals "$exit_code" "1"
+    assert_contains "$result" "auth file exists but is not readable"
+    assert_not_contains "$result" "Not logged in"
+}
+
+test_codex_invalid_auth_file_prompts_relogin() {
+    local temp_dir=$(mktemp -d)
+    typeset -g _ZSH_AI_CODEX_AUTH_FILE="$temp_dir/auth.json"
+    print -r -- 'not json' > "$_ZSH_AI_CODEX_AUTH_FILE"
+
+    local result
+    result=$(_zsh_ai_codex_load_auth 2>&1)
+    local exit_code=$?
+    rm -rf -- "$temp_dir"
+
+    assert_equals "$exit_code" "1"
+    assert_contains "$result" "invalid or incomplete"
+    assert_contains "$result" "zsh-ai-codex login"
+}
+
 test_codex_logout_deletes_auth_file() {
     local temp_dir=$(mktemp -d)
     typeset -g _ZSH_AI_CODEX_AUTH_FILE="$temp_dir/auth.json"
@@ -547,6 +579,8 @@ run_test "Codex request omits missing account header" test_codex_request_omits_a
 run_test "Codex expired token refreshes before request" test_codex_expired_token_refreshes_before_request
 run_test "Codex 401 refreshes and retries once" test_codex_401_refreshes_and_retries_once
 run_test "Codex missing auth file prompts login" test_codex_missing_auth_file_prompts_login
+run_test "Codex unreadable auth file reports permissions" test_codex_unreadable_auth_file_reports_permissions
+run_test "Codex invalid auth file prompts relogin" test_codex_invalid_auth_file_prompts_relogin
 run_test "Codex logout deletes auth file" test_codex_logout_deletes_auth_file
 run_test "Codex status does not print tokens" test_codex_status_does_not_print_tokens
 run_test "Codex login writes auth file" test_codex_login_writes_auth_file

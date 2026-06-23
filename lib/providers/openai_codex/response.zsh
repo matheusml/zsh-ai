@@ -65,7 +65,7 @@ _zsh_ai_query_openai_codex() {
     local json_payload=$(
         cat <<EOF
 {
-    "model": "${ZSH_AI_OPENAI_MODEL}",
+    "model": "${ZSH_AI_CODEX_MODEL}",
     "instructions": "$escaped_system_prompt",
     "input": [
         {

@@ -4,7 +4,7 @@
 
 _ZSH_AI_CODEX_CLIENT_ID="${_ZSH_AI_CODEX_CLIENT_ID:-app_EMoamEEZ73f0CkXaXp7hrann}"
 _ZSH_AI_CODEX_REDIRECT_URI="https://auth.openai.com/deviceauth/callback"
-: ${_ZSH_AI_CODEX_AUTH_FILE:="${ZSH_AI_DATA_DIR:-$(_zsh_ai_data_dir)}/openai/auth.json"}
+: ${_ZSH_AI_CODEX_AUTH_FILE:="$ZSH_AI_DATA_DIR/openai_codex/auth.json"}
 _ZSH_AI_CODEX_LOGIN_REQUIRED_MESSAGE="Error: Not logged in to ChatGPT/Codex. Run \`zsh-ai-codex login\`."
 _ZSH_AI_CODEX_RELOGIN_REQUIRED_MESSAGE="Error: Run \`zsh-ai-codex login\` to sign in again."
 
@@ -142,14 +142,20 @@ _zsh_ai_codex_load_auth() {
         return 1
     fi
 
+    if [[ ! -r "$auth_file" ]]; then
+        echo "Error: Codex auth file exists but is not readable: $auth_file"
+        return 1
+    fi
+
     json=$(<"$auth_file")
+
     typeset -g _ZSH_AI_CODEX_ACCESS_TOKEN="$(_zsh_ai_json_get_string "$json" "access_token")"
     typeset -g _ZSH_AI_CODEX_REFRESH_TOKEN="$(_zsh_ai_json_get_string "$json" "refresh_token")"
     typeset -g _ZSH_AI_CODEX_EXPIRES_AT="$(_zsh_ai_json_get_number "$json" "expires_at")"
     typeset -g _ZSH_AI_CODEX_ACCOUNT_ID="$(_zsh_ai_json_get_string "$json" "account_id")"
 
     if [[ -z "$_ZSH_AI_CODEX_ACCESS_TOKEN" || -z "$_ZSH_AI_CODEX_REFRESH_TOKEN" ]]; then
-        echo "$_ZSH_AI_CODEX_LOGIN_REQUIRED_MESSAGE"
+        echo "Error: Codex auth file is invalid or incomplete. Run \`zsh-ai-codex login\`."
         return 1
     fi
 

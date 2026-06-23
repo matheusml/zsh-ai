@@ -37,6 +37,8 @@ _zsh_ai_query() {
         _zsh_ai_query_gemini "$query"
     elif [[ "$ZSH_AI_PROVIDER" == "openai" ]]; then
         _zsh_ai_query_openai "$query"
+    elif [[ "$ZSH_AI_PROVIDER" == "openai_codex" ]]; then
+        _zsh_ai_query_openai_codex "$query"
     elif [[ "$ZSH_AI_PROVIDER" == "qwen" ]]; then
         _zsh_ai_query_qwen "$query"
     elif [[ "$ZSH_AI_PROVIDER" == "grok" ]]; then
@@ -81,6 +83,8 @@ zsh-ai() {
             echo "Gemini model: $ZSH_AI_GEMINI_MODEL"
         elif [[ "$ZSH_AI_PROVIDER" == "openai" ]]; then
             echo "OpenAI model: $ZSH_AI_OPENAI_MODEL"
+        elif [[ "$ZSH_AI_PROVIDER" == "openai_codex" ]]; then
+            _zsh_ai_codex_status
         elif [[ "$ZSH_AI_PROVIDER" == "qwen" ]]; then
             echo "Qwen model: $ZSH_AI_QWEN_MODEL"
         elif [[ "$ZSH_AI_PROVIDER" == "grok" ]]; then
@@ -145,21 +149,21 @@ zsh-ai-codex() {
     [[ $# -gt 0 ]] && shift
 
     case "$codex_command" in
-        login)
-            _zsh_ai_codex_login "$@"
-            return $?
-            ;;
-        logout)
-            _zsh_ai_codex_logout "$@"
-            return $?
-            ;;
-        status)
-            _zsh_ai_codex_status "$@"
-            return $?
-            ;;
-        *)
-            echo "Usage: zsh-ai-codex login|logout|status"
-            return 1
-            ;;
+    login)
+        _zsh_ai_codex_login "$@"
+        return $?
+        ;;
+    logout)
+        _zsh_ai_codex_logout "$@"
+        return $?
+        ;;
+    status)
+        _zsh_ai_codex_status "$@"
+        return $?
+        ;;
+    *)
+        echo "Usage: zsh-ai-codex login|logout|status"
+        return 1
+        ;;
     esac
 }
