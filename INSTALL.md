@@ -77,9 +77,6 @@ Key: [OpenAI](https://platform.openai.com/api-keys)
 
 ```bash
 export ZSH_AI_PROVIDER="openai_codex"
-export ZSH_AI_CODEX_MODEL="gpt-5.4-mini"
-export ZSH_AI_CODEX_ISSUER="https://auth.openai.com"
-export ZSH_AI_CODEX_URL="https://chatgpt.com/backend-api/codex/responses"
 ```
 
 Reload your shell after loading this config, then sign in:
