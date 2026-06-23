@@ -79,14 +79,6 @@ test_validates_openai_provider() {
     teardown_test_env
 }
 
-test_default_openai_auth_is_api_key() {
-    setup_test_env
-    unset ZSH_AI_OPENAI_AUTH
-    source "$PLUGIN_DIR/lib/config.zsh"
-    assert_equals "$ZSH_AI_OPENAI_AUTH" "api_key"
-    teardown_test_env
-}
-
 test_default_codex_config() {
     setup_test_env
     unset ZSH_AI_CODEX_ISSUER
@@ -101,22 +93,11 @@ test_openai_codex_auth_does_not_require_api_key() {
     setup_test_env
     unset OPENAI_API_KEY
     unset ZSH_AI_OPENAI_API_KEY
-    export ZSH_AI_PROVIDER="openai"
-    export ZSH_AI_OPENAI_AUTH="codex"
+    export ZSH_AI_PROVIDER="openai_codex"
     export ZSH_AI_OPENAI_URL="https://api.openai.com/v1/chat/completions"
     _zsh_ai_validate_config >/dev/null 2>&1
     local result=$?
     assert_equals "$result" "0"
-    teardown_test_env
-}
-
-test_rejects_invalid_openai_auth() {
-    setup_test_env
-    export ZSH_AI_PROVIDER="openai"
-    export ZSH_AI_OPENAI_AUTH="invalid"
-    _zsh_ai_validate_config >/dev/null 2>&1
-    local result=$?
-    assert_equals "$result" "1"
     teardown_test_env
 }
 
@@ -160,10 +141,8 @@ run_test "Validates ollama provider" test_validates_ollama_provider
 run_test "Rejects invalid provider" test_rejects_invalid_provider
 run_test "Validates gemini provider" test_validates_gemini_provider
 run_test "Validates openai provider" test_validates_openai_provider
-run_test "Default OpenAI auth is api_key" test_default_openai_auth_is_api_key
 run_test "Default Codex config is set" test_default_codex_config
 run_test "OpenAI Codex auth does not require API key" test_openai_codex_auth_does_not_require_api_key
-run_test "Rejects invalid OpenAI auth mode" test_rejects_invalid_openai_auth
 run_test "Comment hook enabled by default" test_comment_hook_enabled_by_default
 run_test "Comment hook can be disabled" test_comment_hook_can_be_disabled
 run_test "Default trigger is '# '" test_default_trigger_is_hash
