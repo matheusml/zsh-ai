@@ -46,6 +46,40 @@ _zsh_ai_query() {
     fi
 }
 
+# Start _zsh_ai_query as a background job so callers can animate while waiting.
+# Publishes the job through globals (a function can't return two values):
+# $_zsh_ai_async_pid to poll with kill -0, $_zsh_ai_async_tmpfile for the response.
+# Callers must setopt no_monitor/no_notify/no_bg_nice with local_options in their
+# own scope: set here, the options would expire when this function returns and
+# job control notifications would come back while the caller is still waiting.
+_zsh_ai_async_start() {
+    local query="$1"
+
+    # Create a temp file for the response
+    typeset -g _zsh_ai_async_tmpfile=$(mktemp)
+
+    # Only redirect stdout to tmpfile, let stderr go to /dev/null to avoid mixing error output
+    # >| so the redirect works when the user has noclobber set (mktemp already created the file)
+    (_zsh_ai_query "$query" >| "$_zsh_ai_async_tmpfile" 2>/dev/null) &
+    typeset -g _zsh_ai_async_pid=$!
+}
+
+# Reap the job started by _zsh_ai_async_start and put its output in $REPLY.
+# Returns 0 only when the output looks like a usable command (query exited
+# zero, response non-empty and not an error message).
+_zsh_ai_async_collect() {
+    # Reap the background job so it doesn't linger in the job table
+    wait $_zsh_ai_async_pid 2>/dev/null
+    local exit_code=$?
+
+    typeset -g REPLY
+    REPLY=$(cat "$_zsh_ai_async_tmpfile")
+    rm -f "$_zsh_ai_async_tmpfile"
+    unset _zsh_ai_async_pid _zsh_ai_async_tmpfile
+
+    [[ $exit_code -eq 0 ]] && [[ -n "$REPLY" ]] && [[ "$REPLY" != "Error:"* ]] && [[ "$REPLY" != "API Error:"* ]]
+}
+
 # Optional: Add a helper function for users who prefer explicit commands
 zsh-ai() {
     if [[ $# -eq 0 ]]; then
@@ -75,43 +109,33 @@ zsh-ai() {
     local dots=("⠋" "⠙" "⠹" "⠸" "⠼" "⠴" "⠦" "⠧" "⠇" "⠏")
     local frame=0
     
-    # Create a temp file for the response
-    local tmpfile=$(mktemp)
-    
-    # Disable job control notifications (same as widget)
+    # Disable job control notifications (same as widget; must stay in this
+    # scope so it covers the wait below, see _zsh_ai_async_start)
     setopt local_options no_monitor no_notify no_bg_nice
 
     # Start the API query in background
-    # >| so the redirect works when the user has noclobber set (mktemp already created the file)
-    (_zsh_ai_query "$query" >| "$tmpfile" 2>/dev/null) &
-    local pid=$!
-    
+    _zsh_ai_async_start "$query"
+
     # Animate while waiting
-    while kill -0 $pid 2>/dev/null; do
+    while kill -0 $_zsh_ai_async_pid 2>/dev/null; do
         echo -ne "\r${dots[$((frame % ${#dots[@]}))]} "
         ((frame++))
         sleep 0.1
     done
-    
+
     # Clear the line
     echo -ne "\r\033[K"
-    
-    # Get the response and exit code
-    wait $pid
-    local exit_code=$?
-    local cmd=$(cat "$tmpfile")
-    rm -f "$tmpfile"
-    
-    if [[ $exit_code -eq 0 ]] && [[ -n "$cmd" ]] && [[ "$cmd" != "Error:"* ]] && [[ "$cmd" != "API Error:"* ]]; then
+
+    if _zsh_ai_async_collect; then
         # Put the command in the ZLE buffer (same as # method)
-        print -z "$cmd"
+        print -z "$REPLY"
     else
         # Show error with better visibility
         echo ""  # Blank line for spacing
         print -P "%F{red}━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━%f"
         print -P "%F{red}❌ Failed to generate command%f"
-        if [[ -n "$cmd" ]]; then
-            print -P "%F{red}$cmd%f"
+        if [[ -n "$REPLY" ]]; then
+            print -P "%F{red}$REPLY%f"
         fi
         print -P "%F{red}━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━%f"
         echo ""  # Blank line for spacing

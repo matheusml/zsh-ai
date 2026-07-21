@@ -26,38 +26,25 @@ _zsh_ai_accept_line() {
         
         local frame=0
         
-        # Create a temp file for the response
-        local tmpfile=$(mktemp)
-        
-        # Disable job control notifications
+        # Disable job control notifications (must stay in this scope so it
+        # covers the wait below, see _zsh_ai_async_start)
         setopt local_options no_monitor no_notify no_bg_nice
-        
-        # Start the API query in background using the shared function
-        # Only redirect stdout to tmpfile, let stderr go to /dev/null to avoid mixing error output
-        # >| so the redirect works when the user has noclobber set (mktemp already created the file)
-        (_zsh_ai_query "$query" >| "$tmpfile" 2>/dev/null) &
-        local pid=$!
-        
+
+        # Start the API query in background using the shared helper
+        _zsh_ai_async_start "$query"
+
         # Animate while waiting
-        while kill -0 $pid 2>/dev/null; do
+        while kill -0 $_zsh_ai_async_pid 2>/dev/null; do
             BUFFER="$saved_buffer ${dots[$((frame % ${#dots[@]}))]}"
             zle redisplay
             ((frame++))
             # Use zsh's built-in sleep equivalent
             zle -R && sleep 0.1
         done
-        
-        # Reap the background job so it doesn't linger in the job table
-        wait $pid 2>/dev/null
-        local exit_code=$?
 
-        # Get the response
-        local cmd=$(cat "$tmpfile")
-        rm -f "$tmpfile"
-        
-        if [[ $exit_code -eq 0 ]] && [[ -n "$cmd" ]] && [[ "$cmd" != "Error:"* ]] && [[ "$cmd" != "API Error:"* ]]; then
+        if _zsh_ai_async_collect; then
             # Simply replace the buffer with the generated command
-            BUFFER="$cmd"
+            BUFFER="$REPLY"
 
             # Move cursor to end of line
             CURSOR=$#BUFFER
@@ -65,8 +52,8 @@ _zsh_ai_accept_line() {
             # Show error - keep it visible
             echo ""  # New line for better visibility
             print -P "%F{red}❌ Failed to generate command%f"
-            if [[ -n "$cmd" ]]; then
-                print -P "%F{red}$cmd%f"
+            if [[ -n "$REPLY" ]]; then
+                print -P "%F{red}$REPLY%f"
             fi
             echo ""  # Extra line for readability
 
