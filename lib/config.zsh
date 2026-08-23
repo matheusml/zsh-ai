@@ -6,7 +6,7 @@
 : ${ZSH_AI_PROVIDER:="anthropic"}  # Default to anthropic for backwards compatibility
 : ${ZSH_AI_OLLAMA_MODEL:="llama3.2"}  # Popular fast model
 : ${ZSH_AI_OLLAMA_URL:="http://localhost:11434"}  # Default Ollama URL
-: ${ZSH_AI_GEMINI_MODEL:="gemini-2.5-flash"}  # Fast Gemini 2.5 model
+: ${ZSH_AI_GEMINI_MODEL:="gemini-3.7-flash"}  # Fast Gemini 3.7 model
 : ${ZSH_AI_OPENAI_MODEL:="gpt-5.4-mini"}  # Default to GPT-5.4 mini (gpt-5-mini is deprecated)
 : ${ZSH_AI_OPENAI_URL:="https://api.openai.com/v1/chat/completions"}  # Default to OpenAI
 : ${ZSH_AI_OPENAI_THINKING:=""}  # Configure thinking for supported models: 0 or 1, default unset/empty
