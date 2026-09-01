@@ -433,6 +433,7 @@ test_openai_thinking_invalid_value_returns_error() {
 
     # Should not pass validation since it is not 0, 1, or unset
     assert_equals "$exit_code" "1"
+    unset ZSH_AI_OPENAI_THINKING
 }
 
 run_test "ZSH_AI_OPENAI_THINKING unset omits chat_template_kwargs parameter" test_openai_thinking_unset_omits_param
@@ -470,7 +471,49 @@ test_openai_reasoning_effort_escapes_value() {
     assert_contains "$captured_payload" '"reasoning_effort": "custom\"tier"'
 }
 
+
+# Tests for ZSH_AI_OPENAI_MAX_TOKENS
+echo ""
+echo "Running OpenAI-compatible max tokens tests..."
+
+test_openai_max_tokens_defaults_to_256() {
+    unset ZSH_AI_OPENAI_MAX_TOKENS
+    source "${PLUGIN_DIR}/lib/config.zsh"
+    local captured_payload=$(capture_openai_payload_for_model "gpt-5-mini")
+    assert_contains "$captured_payload" '"max_completion_tokens": 256'
+}
+
+test_openai_max_tokens_uses_custom_value() {
+    export ZSH_AI_OPENAI_MAX_TOKENS=2048
+    local captured_payload=$(capture_openai_payload_for_model "gpt-5-mini")
+    unset ZSH_AI_OPENAI_MAX_TOKENS
+    assert_contains "$captured_payload" '"max_completion_tokens": 2048'
+}
+
+test_openai_max_tokens_invalid_value_returns_error() {
+    export ZSH_AI_OPENAI_MAX_TOKENS="abc"
+    local result
+    result=$(_zsh_ai_validate_config 2>&1)
+    local exit_code=$?
+    assert_equals "$exit_code" "1"
+    unset ZSH_AI_OPENAI_MAX_TOKENS
+    assert_contains "$result" "ZSH_AI_OPENAI_MAX_TOKENS must be a positive integer"
+}
+
+test_openai_max_tokens_invalid_fallback_to_256() {
+    export ZSH_AI_OPENAI_MAX_TOKENS="invalid"
+    local captured_payload=$(capture_openai_payload_for_model "gpt-5-mini")
+    unset ZSH_AI_OPENAI_MAX_TOKENS
+    assert_contains "$captured_payload" '"max_completion_tokens": 256'
+}
+
+run_test "ZSH_AI_OPENAI_MAX_TOKENS defaults to 256" test_openai_max_tokens_defaults_to_256
+run_test "ZSH_AI_OPENAI_MAX_TOKENS uses custom value" test_openai_max_tokens_uses_custom_value
+run_test "ZSH_AI_OPENAI_MAX_TOKENS invalid value returns error" test_openai_max_tokens_invalid_value_returns_error
+run_test "ZSH_AI_OPENAI_MAX_TOKENS invalid value falls back to 256 at runtime" test_openai_max_tokens_invalid_fallback_to_256
+
 run_test "ZSH_AI_OPENAI_REASONING_EFFORT unset omits reasoning_effort parameter" test_openai_reasoning_effort_unset_omits_param
 run_test "ZSH_AI_OPENAI_REASONING_EFFORT sets reasoning_effort value" test_openai_reasoning_effort_sets_value
 run_test "ZSH_AI_OPENAI_REASONING_EFFORT escapes reasoning_effort value" test_openai_reasoning_effort_escapes_value
 finish_tests
+

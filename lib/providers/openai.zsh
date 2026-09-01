@@ -46,6 +46,9 @@ _zsh_ai_query_openai() {
         reasoning_effort_param=$',\n    "reasoning_effort": "'"$(_zsh_ai_escape_json "$ZSH_AI_OPENAI_REASONING_EFFORT")"'"'
     fi
 
+    local max_tokens="${ZSH_AI_OPENAI_MAX_TOKENS:-256}"
+    [[ "$max_tokens" == <1-> ]] || max_tokens=256
+
     local json_payload=$(cat <<EOF
 {
     "model": "${ZSH_AI_OPENAI_MODEL}",
@@ -59,7 +62,7 @@ _zsh_ai_query_openai() {
             "content": "$escaped_query"
         }
     ],
-    "$token_param": 256${temperature_param}${thinking_param}${reasoning_effort_param}
+    "$token_param": ${max_tokens}${temperature_param}${thinking_param}${reasoning_effort_param}
 }
 EOF
 )

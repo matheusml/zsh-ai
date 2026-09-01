@@ -137,6 +137,8 @@ export ZSH_AI_OPENAI_API_KEY="sk-your-proxy-key"
 
 `ZSH_AI_OPENAI_REASONING_EFFORT` sets the `reasoning_effort` parameter for OpenAI-compatible endpoints that support it. For example, Groq supports `none` and `default` for `qwen/qwen3.6-27b`; set `none` to disable reasoning tokens. Common values are `none`, `default`, `minimal`, `low`, `medium`, and `high`; leave unset for upstream defaults.
 
+`ZSH_AI_OPENAI_MAX_TOKENS` sets the maximum number of tokens for the response. Increase this value for reasoning models to prevent the thinking process from being cut off, leading to "Failed to generate command" or "Unable to parse response" errors.
+
 ## Custom Provider
 
 Set `ZSH_AI_PROVIDER` to `custom` and define `_zsh_ai_query_custom` before `zsh-ai` loads. The function receives the natural-language query as its first argument. It must print only the generated command to standard output. If the provider fails, the function must print a message prefixed with `Error:` to the standard output, and/or return a non-zero status. This example uses the Codex CLI:
