@@ -56,28 +56,13 @@ export OPENAI_API_KEY="your-key-here"
 
 | `ZSH_AI_PROVIDER` | API key variable | Default model |
 | --- | --- | --- |
-| `anthropic` | `ANTHROPIC_API_KEY` | [`claude-haiku-4-5`](https://platform.claude.com/docs/en/models/overview) |
-| `openai` | `OPENAI_API_KEY` | [`gpt-5.6-luna`](https://developers.openai.com/api/docs/models/gpt-5.6-luna) |
-| `gemini` | `GEMINI_API_KEY` | [`gemini-3.5-flash-lite`](https://ai.google.dev/gemini-api/docs/models/gemini-3.5-flash-lite) |
-| `mistral` | `MISTRAL_API_KEY` | [`mistral-small-latest`](https://docs.mistral.ai/models/mistral-small-4-0-26-03) |
-| `grok` | `XAI_API_KEY` | [`grok-4.3`](https://docs.x.ai/developers/models/grok-4.3) |
-| `qwen` | `QWEN_API_KEY` | [`qwen3.8-flash`](https://www.alibabacloud.com/help/en/model-studio/models) |
+| `anthropic` | `ANTHROPIC_API_KEY` | `claude-haiku-4-5` |
+| `openai` | `OPENAI_API_KEY` | `gpt-5.6-luna` |
+| `gemini` | `GEMINI_API_KEY` | `gemini-3.5-flash-lite` |
+| `mistral` | `MISTRAL_API_KEY` | `mistral-small-latest` |
+| `grok` | `XAI_API_KEY` | `grok-4.3` |
+| `qwen` | `QWEN_API_KEY` | `qwen3.8-flash` |
 | `ollama` | None | `llama3.2` |
-
-Defaults favor fast, inexpensive command suggestions; reviewed September 14, 2026.
-Haiku is still Anthropic's fastest tier, Mistral's alias tracks Small 4, and Grok
-4.3 supports disabling reasoning. Newer Grok 4.6 requires reasoning, so it isn't
-a drop-in replacement for this provider's `reasoning_effort: none` setting.
-
-Gemini 3 uses [thinking levels](https://ai.google.dev/gemini-api/docs/generate-content/thinking)
-and temperature `1.0`. Flash-Lite uses `MINIMAL` thinking, with a 1,024-token output
-ceiling to leave room for reasoning. Gemini 3 Pro and newer Flash overrides use
-`LOW`; Gemini 2.5 overrides keep the previous settings. Qwen 3.8 requests use
-[`reasoning_effort: none`](https://www.alibabacloud.com/help/en/model-studio/qwen-api-via-openai-chat-completions)
-to disable reasoning for short commands.
-
-Explicit model settings in `~/.zshrc` take priority. Remove an old setting and open
-a new shell to adopt the new default, or update it to the model in the table.
 
 ### Ollama
 
@@ -89,18 +74,6 @@ ollama pull llama3.2
 
 Set `export ZSH_AI_PROVIDER="ollama"` in `~/.zshrc`. No API key needed;
 requests stay on your machine when you use the local server.
-
-The default stays `llama3.2` so existing installations don't need another download.
-For a newer small model, try [Qwen 3.5 4B](https://ollama.com/library/qwen3.5:4b)
-(a 3.4 GB download):
-
-```zsh
-ollama pull qwen3.5:4b
-export ZSH_AI_OLLAMA_MODEL="qwen3.5:4b"
-```
-
-Put the model setting before the plugin loads in `~/.zshrc`. The Ollama provider
-disables thinking for command suggestions.
 
 ### OpenAI-compatible endpoints
 
@@ -122,10 +95,8 @@ These optional settings are passed through to servers that support them:
 | `ZSH_AI_OPENAI_THINKING` | `chat_template_kwargs.enable_thinking` | `0` or `1` |
 | `ZSH_AI_OPENAI_REASONING_EFFORT` | `reasoning_effort` | Depends on the server and model, e.g. `none` or `low` |
 
-Leave them unset to use the server's defaults. The built-in OpenAI model,
-`gpt-5.6-luna`, uses `reasoning_effort: none` on the default OpenAI URL for fast
-command suggestions. Set `ZSH_AI_OPENAI_REASONING_EFFORT` to override that choice;
-custom endpoints and other models keep their server defaults when it is unset.
+Leave them unset to use server defaults. The default OpenAI model and URL use
+`reasoning_effort: none` unless overridden.
 
 `ZSH_AI_OPENAI_MAX_TOKENS` defaults to `256` and must be a positive integer.
 Increase it if a reasoning model runs out of tokens before producing a command.
