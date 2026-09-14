@@ -41,9 +41,16 @@ _zsh_ai_query_openai() {
         1) thinking_param=$',\n    "chat_template_kwargs": { "enable_thinking": true }' ;;
     esac
 
+    # Luna defaults to medium reasoning upstream, which can consume the entire
+    # command token budget. Keep the default fast without overriding other servers.
+    local reasoning_effort="$ZSH_AI_OPENAI_REASONING_EFFORT"
+    if [[ -z "$reasoning_effort" && "$ZSH_AI_OPENAI_MODEL" == "gpt-5.6-luna" &&
+          "$ZSH_AI_OPENAI_URL" == "https://api.openai.com/v1/chat/completions" ]]; then
+        reasoning_effort="none"
+    fi
     local reasoning_effort_param=""
-    if [[ -n "$ZSH_AI_OPENAI_REASONING_EFFORT" ]]; then
-        reasoning_effort_param=$',\n    "reasoning_effort": "'"$(_zsh_ai_escape_json "$ZSH_AI_OPENAI_REASONING_EFFORT")"'"'
+    if [[ -n "$reasoning_effort" ]]; then
+        reasoning_effort_param=$',\n    "reasoning_effort": "'"$(_zsh_ai_escape_json "$reasoning_effort")"'"'
     fi
 
     local max_tokens="${ZSH_AI_OPENAI_MAX_TOKENS:-256}"

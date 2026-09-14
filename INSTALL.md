@@ -57,11 +57,11 @@ export OPENAI_API_KEY="your-key-here"
 | `ZSH_AI_PROVIDER` | API key variable | Default model |
 | --- | --- | --- |
 | `anthropic` | `ANTHROPIC_API_KEY` | `claude-haiku-4-5` |
-| `openai` | `OPENAI_API_KEY` | `gpt-5.4-mini` |
-| `gemini` | `GEMINI_API_KEY` | `gemini-2.5-flash` |
+| `openai` | `OPENAI_API_KEY` | `gpt-5.6-luna` |
+| `gemini` | `GEMINI_API_KEY` | `gemini-3.5-flash-lite` |
 | `mistral` | `MISTRAL_API_KEY` | `mistral-small-latest` |
 | `grok` | `XAI_API_KEY` | `grok-4.3` |
-| `qwen` | `QWEN_API_KEY` | `qwen-flash` |
+| `qwen` | `QWEN_API_KEY` | `qwen3.8-flash` |
 | `ollama` | None | `llama3.2` |
 
 ### Ollama
@@ -95,7 +95,8 @@ These optional settings are passed through to servers that support them:
 | `ZSH_AI_OPENAI_THINKING` | `chat_template_kwargs.enable_thinking` | `0` or `1` |
 | `ZSH_AI_OPENAI_REASONING_EFFORT` | `reasoning_effort` | Depends on the server and model, e.g. `none` or `low` |
 
-Leave them unset to use the server's defaults.
+Leave them unset to use server defaults. The default OpenAI model and URL use
+`reasoning_effort: none` unless overridden.
 
 `ZSH_AI_OPENAI_MAX_TOKENS` defaults to `256` and must be a positive integer.
 Increase it if a reasoning model runs out of tokens before producing a command.

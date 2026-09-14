@@ -16,6 +16,13 @@ _zsh_ai_query_qwen() {
     # Prepare the JSON payload - escape quotes in the query
     local escaped_query=$(_zsh_ai_escape_json "$query")
 
+    # Qwen 3.8 enables deep reasoning by default. Disable it for command
+    # suggestions, while preserving the request format for older model overrides.
+    local reasoning_param=""
+    if [[ "$ZSH_AI_QWEN_MODEL" == qwen3.8-* ]]; then
+        reasoning_param=$',\n    "reasoning_effort": "none"'
+    fi
+
     local json_payload=$(cat <<EOF
 {
     "model": "${ZSH_AI_QWEN_MODEL}",
@@ -30,7 +37,7 @@ _zsh_ai_query_qwen() {
         }
     ],
     "max_tokens": 256,
-    "temperature": 0.3
+    "temperature": 0.3${reasoning_param}
 }
 EOF
 )

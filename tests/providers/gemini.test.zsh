@@ -15,9 +15,10 @@ test_default_model_configuration() {
     setup_test_env
     
     # Source config to get default values
+    unset ZSH_AI_GEMINI_MODEL
     source "$PLUGIN_DIR/lib/config.zsh"
     
-    assert_equals "$ZSH_AI_GEMINI_MODEL" "gemini-2.5-flash"
+    assert_equals "$ZSH_AI_GEMINI_MODEL" "gemini-3.5-flash-lite"
     
     teardown_test_env
 }

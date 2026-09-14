@@ -15,6 +15,25 @@ _zsh_ai_query_gemini() {
     
     # Prepare the JSON payload - escape quotes in the query
     local escaped_query=$(_zsh_ai_escape_json "$query")
+
+    # Gemini 3 uses thinking levels and is tuned for temperature 1.0. Allow
+    # some extra output tokens for its minimal reasoning before the command.
+    # Keep the older settings for users who explicitly select Gemini 2.5.
+    local temperature=0.3
+    local max_output_tokens=256
+    local thinking_config='"thinkingBudget": 0'
+    if [[ "$ZSH_AI_GEMINI_MODEL" == gemini-3* ]]; then
+        temperature=1.0
+        max_output_tokens=1024
+        case "$ZSH_AI_GEMINI_MODEL" in
+            gemini-3-flash*|gemini-3.[156]-flash*)
+                thinking_config='"thinkingLevel": "MINIMAL"' ;;
+            *)
+                # Pro and newer Flash models do not support MINIMAL.
+                thinking_config='"thinkingLevel": "LOW"' ;;
+        esac
+    fi
+
     local json_payload=$(cat <<EOF
 {
     "contents": [
@@ -35,10 +54,10 @@ _zsh_ai_query_gemini() {
         ]
     },
     "generationConfig": {
-        "temperature": 0.3,
-        "maxOutputTokens": 256,
+        "temperature": ${temperature},
+        "maxOutputTokens": ${max_output_tokens},
         "thinkingConfig": {
-            "thinkingBudget": 0
+            ${thinking_config}
         }
     }
 }
