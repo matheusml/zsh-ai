@@ -1,63 +1,32 @@
 # Contributing
 
-Thanks for helping with `zsh-ai`. Small, focused PRs are easiest to review.
+Small PRs are easiest to review. For a larger feature, open an issue first so we
+can talk through it.
 
-## Quick Path
+## Get started
 
-```bash
+```zsh
 git clone https://github.com/matheusml/zsh-ai
 cd zsh-ai
 ./run-tests.zsh
 ```
 
-After configuring a provider, run a manual check:
+To try your changes, [configure a provider](INSTALL.md#providers), then run
+`source ./zsh-ai.plugin.zsh` in an interactive zsh. Check both `# show git status`
+and `zsh-ai "show git status"`.
 
-```bash
-source zsh-ai.plugin.zsh
-zsh-ai "show git status"
-```
+## Tests and code
 
-## Good PRs
+Run `./run-tests.zsh` for the full suite, `./run-tests.zsh tests/providers` for
+providers, or `zsh tests/config.test.zsh` for one file.
 
-- bug fixes
-- provider fixes or new provider support
-- better command generation behavior
-- clearer setup or usage docs
-- tests for existing edge cases
+Use the assertions and mocks in `tests/test_helper.zsh`. Wrap tests with
+`run_test` and end each file with `finish_tests`. Provider tests should cover API
+errors, empty responses, and parsing with and without `jq`.
 
-Open an issue first for larger features.
+Follow the existing zsh style, keep zsh 5.0+ working, and keep `jq` optional.
+Avoid adding runtime dependencies. Update the install guide when config changes.
 
-## Tests
-
-```bash
-./run-tests.zsh
-./run-tests.zsh tests/providers
-zsh tests/config.test.zsh
-```
-
-Tests live in `tests/`. Provider tests live in `tests/providers/`. Use `tests/test_helper.zsh` for assertions and mocks. Run each test with `run_test` and end test files with `finish_tests`.
-
-Provider changes should cover:
-
-- API errors
-- empty responses
-- parsing with `jq`
-- parsing without `jq`
-- docs updates when config changes
-
-## Style
-
-- follow the existing zsh patterns
-- keep functions small
-- keep provider code explicit
-- preserve older zsh support
-- do not add Node, Python, or another runtime dependency
-- keep `jq` optional
-
-## PR Checklist
-
-- `./run-tests.zsh` passes
-- `# ...` comment flow tested manually
-- `zsh-ai "..."` tested manually
-- no API keys or local paths committed
-- PR description says what changed and how it was tested
+Before sending a PR, run the tests and try both ways of asking for a command if
+you changed their behavior. Say what changed and how you checked it. Keep API
+keys and local paths out of the diff.
