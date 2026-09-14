@@ -1,105 +1,49 @@
 # Troubleshooting
 
-Start with the direct command so errors are easy to see:
+Try `zsh-ai "show current date"` first; errors are easier to see there.
 
-```bash
-zsh-ai "show current date"
+## Missing API key
+
+Set the [key for your provider](INSTALL.md#providers) before the plugin loads in
+`~/.zshrc`, then reload it with `source ~/.zshrc`. For the default provider:
+
+```zsh
+export ANTHROPIC_API_KEY="your-key-here"
 ```
 
-## API Key Missing
+Keep keys out of public dotfiles. [Ollama](INSTALL.md#ollama) works without one.
 
-```bash
-zsh-ai: Warning: ANTHROPIC_API_KEY not set. Plugin will not function.
-```
+## Ollama isn't reachable
 
-Set the key for your provider:
+Start it with `ollama serve` if it isn't running. In another terminal, run
+`ollama pull llama3.2` to download the default model.
 
-```bash
-export ANTHROPIC_API_KEY="your-key"
-```
+If it's already running, check the URL. It must be a base URL with no `/v1` suffix:
 
-For permanent setup, put the key above the `zsh-ai` load line in a private `~/.zshrc`.
-
-Or switch to Ollama:
-
-```bash
-export ZSH_AI_PROVIDER="ollama"
-```
-
-## Ollama Is Not Reachable
-
-```bash
-Error: Ollama is not reachable at http://localhost:11434
-```
-
-If Ollama isn't running yet:
-
-```bash
-ollama serve
-ollama pull llama3.2
-```
-
-If it's already running, check `ZSH_AI_OLLAMA_URL`. It must be the base URL with
-no path suffix (`/v1` is for OpenAI-compatible clients, not this plugin):
-
-```bash
+```zsh
 export ZSH_AI_OLLAMA_URL="http://localhost:11434"
 ```
 
-## Nothing Happens With `#`
+## The comment trigger doesn't work
 
-Reload your shell config:
+Use `# ` with a space, or the prefix you set in `ZSH_AI_TRIGGER`. Check that
+`ZSH_AI_COMMENT_HOOK` isn't disabled, then open a new terminal.
 
-```bash
-source ~/.zshrc
-```
+If `zsh-ai "list files"` works but the trigger doesn't, another plugin may be
+replacing the Enter binding. Try loading zsh-ai after your other plugins.
 
-Then test the explicit command:
+## Pasted comments trigger a request
 
-```bash
-zsh-ai "list files"
-```
+Choose a prefix you don't normally paste, such as `export ZSH_AI_TRIGGER=",,"`.
+Or set `export ZSH_AI_COMMENT_HOOK=false` and use `zsh-ai "..."` directly.
+Put the setting before the plugin loads, then open a new terminal.
 
-If that works, restart your terminal so the zle widget binding reloads.
+## JSON parsing fails
 
-## Pasting Code Breaks `#` Comments
+Install `jq` with `brew install jq` or `sudo apt-get install jq`, then retry.
 
-If you paste code blocks that start with `# comment` lines, the inline hook can
-intercept the first line and fire an unwanted query. Either change the trigger to
-something you won't paste, or disable the hook and use `zsh-ai "..."` instead:
+## Still stuck?
 
-```bash
-# Use a different trigger
-export ZSH_AI_TRIGGER=",,"
-
-# Or turn the inline hook off entirely
-export ZSH_AI_COMMENT_HOOK="false"
-```
-
-See [INSTALL.md](INSTALL.md#inline-trigger) for details.
-
-## JSON Parse Errors
-
-Install `jq`:
-
-```bash
-brew install jq
-```
-
-Ubuntu or Debian:
-
-```bash
-sudo apt-get install jq
-```
-
-## Still Stuck
-
-Check the active provider and model:
-
-```bash
-zsh-ai
-```
-
-Then open an issue with your OS, zsh version, provider, install method, and exact error:
-
-https://github.com/matheusml/zsh-ai/issues
+Run `zsh-ai` with no arguments to check the active provider. [Open an
+issue](https://github.com/matheusml/zsh-ai/issues) with your OS, `zsh --version`,
+provider, model, install method, and exact error. Remove any API keys before posting.

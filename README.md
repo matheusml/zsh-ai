@@ -1,130 +1,57 @@
-# zsh-ai
+<p align="center">
+  <img src="assets/logo.png" alt="zsh-ai: a green gecko curled around a retro terminal" width="200">
+</p>
 
-> Ask your shell for the command you meant to write.
+<h1 align="center">zsh-ai</h1>
 
-<img src="https://img.shields.io/github/v/release/matheusml/zsh-ai?label=version&color=yellow" alt="Version"> <img src="https://img.shields.io/badge/runtime-zsh-blue" alt="zsh runtime"> <img src="https://img.shields.io/badge/jq-optional-lightgrey" alt="jq optional"> <img src="https://img.shields.io/github/license/matheusml/zsh-ai?color=lightgrey" alt="License">
+Type `# ` and describe a command. Press Enter to get it at your prompt.
 
-The hard part of the terminal usually is not knowing what to do. It is remembering the exact flags, quoting, and pipeline shape.
-
-`zsh-ai` turns a zsh comment into a command. Type `#`, describe the job, press Enter, and the generated command appears in your prompt.
-
-```bash
+```console
 $ # find files larger than 100mb changed this week
 $ find . -type f -size +100M -mtime -7
 ```
 
-It does not run the command for you. You read it first, edit it if needed, then press Enter again.
+Read it, edit it if needed, then press Enter again to run it.
 
-## Why This Is Different
+<img src="https://github.com/user-attachments/assets/eff46629-855c-41eb-9de3-a53040bd2654" alt="Demo: a comment becomes a command at the prompt" width="520">
 
-Most command help breaks your flow: search result, forum thread, copied snippet, little edits, fingers crossed.
+You can also ask directly:
 
-`zsh-ai` stays on the command line. It sends useful context with your request, including project type, nearby files, git state, and OS. That means "run tests" can become the right command for the directory you are already in.
+```zsh
+zsh-ai "show what is using port 3000"
+```
 
-It is also small by design: zsh plus `curl` and `perl`, no Node runtime, no Python runtime. `jq` is optional.
+Your request includes the directory path, nearby filenames, project type, git
+branch/status, and OS. Choose a hosted provider or run a local model with Ollama.
 
 ## Install
 
-```bash
+Needs zsh 5.0+, `curl`, and `perl`. `jq` is optional.
+
+```zsh
 brew install matheusml/zsh-ai/zsh-ai
 ```
 
-Add this to `~/.zshrc`, with the API key above the `source` line:
+Add this to `~/.zshrc` (keep your key out of public dotfiles):
 
-```bash
+```zsh
 export ANTHROPIC_API_KEY="your-key-here"
-source $(brew --prefix)/share/zsh-ai/zsh-ai.plugin.zsh
+source "$(brew --prefix)/share/zsh-ai/zsh-ai.plugin.zsh"
 ```
 
-Keep API keys out of public dotfiles.
+Run `source ~/.zshrc`, then try `# show current date`.
 
-Reload your shell:
+See the [install guide](INSTALL.md) for Oh My Zsh, Antigen, manual installs,
+[other providers](INSTALL.md#providers), and local models.
 
-```bash
-source ~/.zshrc
+## Make it yours
+
+Add command preferences before the plugin loads in `~/.zshrc`:
+
+```zsh
+export ZSH_AI_PROMPT_EXTEND="Prefer rg over grep and fd over find."
 ```
 
-Then try:
+You can also [change the comment trigger or turn it off](INSTALL.md#inline-trigger).
 
-```bash
-# summarize disk usage for this folder
-```
-
-Prefer a local model on your machine?
-
-```bash
-ollama pull llama3.2
-export ZSH_AI_PROVIDER="ollama"
-```
-
-Put the Ollama provider line above the `zsh-ai` source line.
-
-Full setup lives in [INSTALL.md](INSTALL.md).
-
-## Usage
-
-### Comment Syntax
-
-Type `#`, describe the job, then press Enter.
-
-The trigger is configurable, and the inline hook can be turned off entirely if you
-only want the `zsh-ai "..."` command — see [Configuration](#configuration).
-
-<img src="https://github.com/user-attachments/assets/eff46629-855c-41eb-9de3-a53040bd2654" alt="zsh-ai comment syntax demo" width="520">
-
-```bash
-$ # show what is using port 3000
-$ lsof -i :3000
-
-$ # show commits on this branch that are not on main
-$ git log main..HEAD --oneline
-```
-
-### Direct Command
-
-<img src="https://github.com/user-attachments/assets/e58f0b99-68bf-45a5-87b9-ba7f925ddc87" alt="zsh-ai direct command demo" width="520">
-
-```bash
-$ zsh-ai "find large files modified this week"
-$ find . -type f -size +50M -mtime -7
-```
-
-The command is pushed into your prompt with `print -z`, ready to edit or run.
-
-## Configuration
-
-Switch providers with `ZSH_AI_PROVIDER`:
-
-```bash
-export ZSH_AI_PROVIDER="openai"
-export OPENAI_API_KEY="your-key-here"
-```
-
-OpenAI-compatible endpoints can also pass provider-specific reasoning controls:
-
-```bash
-export ZSH_AI_OPENAI_REASONING_EFFORT="none"
-```
-
-Add command preferences without replacing the built-in quoting rules:
-
-```bash
-export ZSH_AI_PROMPT_EXTEND="Prefer rg over grep, fd over find, and bat over cat."
-```
-
-Change the inline trigger, or disable the comment hook altogether (handy when you
-paste code blocks that start with `#` comments):
-
-```bash
-# Use ,, instead of "# " to start a query
-export ZSH_AI_TRIGGER=",,"
-
-# Disable the inline hook entirely; only `zsh-ai "..."` stays active
-export ZSH_AI_COMMENT_HOOK="false"
-```
-
-## Docs
-
-- [Installation](INSTALL.md)
-- [Troubleshooting](TROUBLESHOOTING.md)
-- [Contributing](CONTRIBUTING.md)
+[Troubleshooting](TROUBLESHOOTING.md) · [Contributing](CONTRIBUTING.md) · [MIT license](LICENSE)
