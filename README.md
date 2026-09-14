@@ -13,7 +13,7 @@ $ find . -type f -size +100M -mtime -7
 
 Read it, edit it if needed, then press Enter again to run it.
 
-<img src="https://github.com/user-attachments/assets/eff46629-855c-41eb-9de3-a53040bd2654" alt="Demo: a comment becomes a command at the prompt" width="520">
+<img src="assets/demo.gif" alt="Demo: typing # list all files and waiting for zsh-ai to suggest ls -la" width="520">
 
 You can also ask directly:
 
