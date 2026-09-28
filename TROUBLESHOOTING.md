@@ -24,6 +24,34 @@ If it's already running, check the URL. It must be a base URL with no `/v1` suff
 export ZSH_AI_OLLAMA_URL="http://localhost:11434"
 ```
 
+## Apfel is not ready
+
+Apfel needs an Apple Silicon Mac, macOS 26 or later, Apple Intelligence, and
+the downloaded on-device model. Check its state:
+
+```zsh
+apfel --model-info
+```
+
+Install and start the service when needed:
+
+```zsh
+brew install apfel
+brew services start apfel
+```
+
+Apfel and Ollama both use port 11434 by default. If both services run, start
+Apfel on another port and set the full endpoint before zsh-ai loads:
+
+```zsh
+apfel --serve --port 11435
+export ZSH_AI_APFEL_URL="http://127.0.0.1:11435/v1/chat/completions"
+```
+
+If Apfel reports that a response is incomplete, shorten the request or increase
+`ZSH_AI_APFEL_MAX_TOKENS`. zsh-ai rejects incomplete output instead of offering
+it as a command.
+
 ## The comment trigger doesn't work
 
 Use `# ` with a space, or the prefix you set in `ZSH_AI_TRIGGER`. Check that

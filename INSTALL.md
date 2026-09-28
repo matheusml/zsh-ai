@@ -63,6 +63,45 @@ export OPENAI_API_KEY="your-key-here"
 | `grok` | `XAI_API_KEY` | `grok-4.3` |
 | `qwen` | `QWEN_API_KEY` | `qwen3.8-flash` |
 | `ollama` | None | `llama3.2` |
+| `apfel` | `ZSH_AI_APFEL_API_KEY` (optional) | `apple-foundationmodel` |
+
+### Apfel
+
+Apfel uses Apple's on-device model. It needs an Apple Silicon Mac, macOS 26 or
+later, Apple Intelligence enabled, and the on-device model downloaded.
+
+```zsh
+brew install apfel
+brew services start apfel
+```
+
+Then set this before the plugin loads:
+
+```zsh
+export ZSH_AI_PROVIDER="apfel"
+```
+
+Apfel has one fixed model: `apple-foundationmodel`. It does not use
+`OPENAI_API_KEY` or `ZSH_AI_OPENAI_API_KEY`. Set `ZSH_AI_APFEL_API_KEY` only
+when your Apfel server requires a bearer token.
+
+`ZSH_AI_APFEL_URL` defaults to
+`http://127.0.0.1:11434/v1/chat/completions`. Apfel and Ollama both use port
+11434 by default. To run both, start Apfel on another local port and set its
+full endpoint:
+
+```zsh
+# In another terminal:
+apfel --serve --port 11435
+
+# In ~/.zshrc, before loading zsh-ai:
+export ZSH_AI_PROVIDER="apfel"
+export ZSH_AI_APFEL_URL="http://127.0.0.1:11435/v1/chat/completions"
+```
+
+`ZSH_AI_APFEL_MAX_TOKENS` defaults to `256` and must be a positive integer.
+An endpoint on another host sends shell context to that host. zsh-ai never
+falls back to a hosted provider.
 
 ### Ollama
 

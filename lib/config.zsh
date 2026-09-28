@@ -6,6 +6,8 @@
 : ${ZSH_AI_PROVIDER:="anthropic"}  # Default to anthropic for backwards compatibility
 : ${ZSH_AI_OLLAMA_MODEL:="llama3.2"}  # Popular fast model
 : ${ZSH_AI_OLLAMA_URL:="http://localhost:11434"}  # Default Ollama URL
+: ${ZSH_AI_APFEL_URL:="http://127.0.0.1:11434/v1/chat/completions"}  # Full Apfel chat-completions URL
+: ${ZSH_AI_APFEL_MAX_TOKENS:=256}  # Maximum number of output tokens
 : ${ZSH_AI_GEMINI_MODEL:="gemini-3.5-flash-lite"}  # Stable, low-latency Flash-Lite model
 : ${ZSH_AI_OPENAI_MODEL:="gpt-5.6-luna"}  # Cost-efficient model for short command suggestions
 : ${ZSH_AI_OPENAI_URL:="https://api.openai.com/v1/chat/completions"}  # Default to OpenAI
@@ -39,8 +41,8 @@ _zsh_ai_comment_hook_enabled() {
 
 # Provider validation
 _zsh_ai_validate_config() {
-    if [[ "$ZSH_AI_PROVIDER" != "anthropic" ]] && [[ "$ZSH_AI_PROVIDER" != "ollama" ]] && [[ "$ZSH_AI_PROVIDER" != "gemini" ]] && [[ "$ZSH_AI_PROVIDER" != "qwen" ]] && [[ "$ZSH_AI_PROVIDER" != "openai" ]] && [[ "$ZSH_AI_PROVIDER" != "grok" ]] && [[ "$ZSH_AI_PROVIDER" != "mistral" ]] && [[ "$ZSH_AI_PROVIDER" != "custom" ]]; then
-        echo "zsh-ai: Error: Invalid provider '$ZSH_AI_PROVIDER'. Use 'anthropic', 'ollama', 'gemini', 'openai', 'qwen', 'grok', 'mistral', or 'custom'."
+    if [[ "$ZSH_AI_PROVIDER" != "anthropic" ]] && [[ "$ZSH_AI_PROVIDER" != "ollama" ]] && [[ "$ZSH_AI_PROVIDER" != "apfel" ]] && [[ "$ZSH_AI_PROVIDER" != "gemini" ]] && [[ "$ZSH_AI_PROVIDER" != "qwen" ]] && [[ "$ZSH_AI_PROVIDER" != "openai" ]] && [[ "$ZSH_AI_PROVIDER" != "grok" ]] && [[ "$ZSH_AI_PROVIDER" != "mistral" ]] && [[ "$ZSH_AI_PROVIDER" != "custom" ]]; then
+        echo "zsh-ai: Error: Invalid provider '$ZSH_AI_PROVIDER'. Use 'anthropic', 'ollama', 'apfel', 'gemini', 'openai', 'qwen', 'grok', 'mistral', or 'custom'."
         return 1
     fi
 
@@ -49,6 +51,11 @@ _zsh_ai_validate_config() {
         if [[ -z "$ANTHROPIC_API_KEY" ]]; then
             echo "zsh-ai: Warning: ANTHROPIC_API_KEY not set. Plugin will not function."
             echo "zsh-ai: Set ANTHROPIC_API_KEY or use ZSH_AI_PROVIDER=ollama for local models."
+            return 1
+        fi
+    elif [[ "$ZSH_AI_PROVIDER" == "apfel" ]]; then
+        if [[ "$ZSH_AI_APFEL_MAX_TOKENS" != <1-> ]]; then
+            echo "zsh-ai: Error: ZSH_AI_APFEL_MAX_TOKENS must be a positive integer."
             return 1
         fi
     elif [[ "$ZSH_AI_PROVIDER" == "gemini" ]]; then

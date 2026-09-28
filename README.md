@@ -22,7 +22,8 @@ zsh-ai "show what is using port 3000"
 ```
 
 Your request includes the directory path, nearby filenames, project type, git
-branch/status, and OS. Choose a hosted provider or run a local model with Ollama.
+branch/status, and OS. Choose a hosted provider, or run a local model with
+Ollama or Apfel. Apfel uses Apple's on-device model on supported Macs.
 
 ## Install
 

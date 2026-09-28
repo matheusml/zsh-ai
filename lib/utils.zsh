@@ -29,6 +29,8 @@ _zsh_ai_query() {
         # The check prints its own user-facing error when Ollama is unreachable
         _zsh_ai_check_ollama || return 1
         _zsh_ai_query_ollama "$query"
+    elif [[ "$ZSH_AI_PROVIDER" == "apfel" ]]; then
+        _zsh_ai_query_apfel "$query"
     elif [[ "$ZSH_AI_PROVIDER" == "gemini" ]]; then
         _zsh_ai_query_gemini "$query"
     elif [[ "$ZSH_AI_PROVIDER" == "openai" ]]; then
@@ -53,8 +55,17 @@ zsh-ai() {
         echo "Example: zsh-ai \"find all python files modified today\""
         echo ""
         echo "Current provider: $ZSH_AI_PROVIDER"
+        echo ""
+        echo "Use Apfel locally on Apple Silicon with macOS 26+ and Apple Intelligence:"
+        echo "  brew install apfel"
+        echo "  brew services start apfel"
+        echo '  export ZSH_AI_PROVIDER="apfel"'
+        echo "See INSTALL.md#apfel for setup and port-conflict guidance."
         if [[ "$ZSH_AI_PROVIDER" == "ollama" ]]; then
             echo "Ollama model: $ZSH_AI_OLLAMA_MODEL"
+        elif [[ "$ZSH_AI_PROVIDER" == "apfel" ]]; then
+            echo "Apfel model: apple-foundationmodel"
+            echo "Apfel endpoint: $ZSH_AI_APFEL_URL"
         elif [[ "$ZSH_AI_PROVIDER" == "gemini" ]]; then
             echo "Gemini model: $ZSH_AI_GEMINI_MODEL"
         elif [[ "$ZSH_AI_PROVIDER" == "openai" ]]; then
