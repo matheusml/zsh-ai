@@ -12,7 +12,7 @@ setup_apfel_test() {
     export ZSH_AI_PROVIDER="apfel"
     export ZSH_AI_APFEL_URL="http://127.0.0.1:11435/v1/chat/completions"
     export ZSH_AI_APFEL_MAX_TOKENS="256"
-    unset ZSH_AI_APFEL_API_KEY OPENAI_API_KEY ZSH_AI_OPENAI_API_KEY
+    unset OPENAI_API_KEY ZSH_AI_OPENAI_API_KEY
     APFEL_TEST_BODY=''
     APFEL_TEST_STATUS="200"
     APFEL_TEST_CURL_STATUS="0"
@@ -73,6 +73,37 @@ test_complete_response_works_without_jq() {
     assert_equals "$?" "0"
     assert_equals "$result" "printf '%s\\n' 'café'"
 
+    teardown_apfel_test
+}
+
+test_no_jq_rejects_nonstring_content_and_allows_null_tool_calls() {
+    setup_apfel_test
+    command() {
+        if [[ "$1" == "-v" && "$2" == "jq" ]]; then
+            return 1
+        fi
+        builtin command "$@"
+    }
+
+    local body
+    for body in \
+        '{"choices":[{"finish_reason":"stop","message":{"content":123}}]}' \
+        '{"choices":[{"finish_reason":"stop","message":{"content":999999999999999999999999999999999}}]}'; do
+        APFEL_TEST_BODY="$body"
+        local result
+        result=$(_zsh_ai_query_apfel "list files")
+        assert_equals "$?" "1"
+        assert_contains "$result" "Error: Apfel returned an unusable response."
+    done
+    teardown_apfel_test
+
+    setup_apfel_test
+    APFEL_TEST_BODY='{"choices":[{"finish_reason":"stop","message":{"content":"pwd","tool_calls":null}}]}'
+
+    local result
+    result=$(_zsh_ai_query_apfel "show the directory")
+    assert_equals "$?" "0"
+    assert_equals "$result" "pwd"
     teardown_apfel_test
 }
 
@@ -156,14 +187,6 @@ test_reports_transport_and_http_errors() {
     assert_contains "$result" "generation timed out"
     teardown_apfel_test
 
-    setup_apfel_test
-    APFEL_TEST_STATUS="401"
-    APFEL_TEST_BODY='{"error":{"message":"bad token"}}'
-
-    result=$(_zsh_ai_query_apfel "list files")
-    assert_equals "$?" "1"
-    assert_contains "$result" "authentication failed"
-    teardown_apfel_test
 
     setup_apfel_test
     APFEL_TEST_STATUS="400"
@@ -211,7 +234,7 @@ test_reports_transport_and_http_errors() {
     teardown_apfel_test
 }
 
-test_request_uses_only_apfel_authentication() {
+test_request_does_not_send_credentials() {
     setup_apfel_test
     export OPENAI_API_KEY="hosted-key"
     export ZSH_AI_OPENAI_API_KEY="proxy-key"
@@ -219,6 +242,9 @@ test_request_uses_only_apfel_authentication() {
 
     _zsh_ai_query_apfel "show the directory" >/dev/null
     local arguments=$(cat "$APFEL_TEST_ARGS_FILE")
+    local first_argument
+    IFS= read -r first_argument < "$APFEL_TEST_ARGS_FILE"
+    assert_equals "$first_argument" "--disable"
     local payload=$(cat "$APFEL_TEST_PAYLOAD_FILE")
     assert_not_contains "$arguments" "Authorization: Bearer"
     assert_contains "$arguments" "--noproxy"
@@ -226,15 +252,6 @@ test_request_uses_only_apfel_authentication() {
     assert_contains "$payload" '"max_tokens": 256'
     assert_contains "$payload" '"stream": false'
     assert_contains "$payload" '"tool_choice": "none"'
-    teardown_apfel_test
-
-    setup_apfel_test
-    export ZSH_AI_APFEL_API_KEY="apfel-token"
-    APFEL_TEST_BODY='{"choices":[{"finish_reason":"stop","message":{"content":"pwd"}}]}'
-
-    _zsh_ai_query_apfel "show the directory" >/dev/null
-    arguments=$(cat "$APFEL_TEST_ARGS_FILE")
-    assert_contains "$arguments" "Authorization: Bearer apfel-token"
     teardown_apfel_test
 }
 
@@ -288,8 +305,6 @@ test_real_curl_path_escapes_request_data() {
     setup_test_env
     export ZSH_AI_PROVIDER="apfel"
     export ZSH_AI_APFEL_MAX_TOKENS="256"
-    unset ZSH_AI_APFEL_API_KEY OPENAI_API_KEY ZSH_AI_OPENAI_API_KEY
-    export ZSH_AI_APFEL_API_KEY="apfel-token"
     export OPENAI_API_KEY="hosted-key"
     export ZSH_AI_OPENAI_API_KEY="proxy-key"
     unfunction curl 2>/dev/null
@@ -327,7 +342,7 @@ test_real_curl_path_escapes_request_data() {
     assert_contains "$request" 'quote " newline'
     assert_contains "$request" '$dollar `backtick` -leading'
     local headers=$(cat "$headers_file")
-    assert_contains "$headers" "Authorization: Bearer apfel-token"
+    assert_not_contains "$headers" "Authorization: Bearer"
     assert_not_contains "$headers" "hosted-key"
     assert_not_contains "$headers" "proxy-key"
 
@@ -338,11 +353,12 @@ test_real_curl_path_escapes_request_data() {
 echo "Running Apfel provider tests..."
 run_test "Returns a complete Apfel command" test_complete_response_returns_command
 run_test "Parses a complete Apfel command without jq" test_complete_response_works_without_jq
+run_test "Matches Apfel response rules without jq" test_no_jq_rejects_nonstring_content_and_allows_null_tool_calls
 run_test "Removes one Apfel markdown fence" test_removes_one_markdown_fence
 run_test "Rejects unusable Apfel completion content" test_rejects_unusable_completion_content
 run_test "Rejects multiline Apfel completions" test_rejects_multiline_completion
 run_test "Rejects incomplete and tool-call Apfel completions" test_rejects_incomplete_and_tool_responses
 run_test "Reports Apfel transport and HTTP errors" test_reports_transport_and_http_errors
-run_test "Uses only Apfel authentication" test_request_uses_only_apfel_authentication
+run_test "Does not send Apfel credentials" test_request_does_not_send_credentials
 run_test "Uses real curl with escaped request data" test_real_curl_path_escapes_request_data
 finish_tests

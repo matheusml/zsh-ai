@@ -40,10 +40,9 @@ test_default_apfel_settings() {
     teardown_test_env
 }
 
-test_validates_apfel_without_api_key() {
+test_validates_apfel_configuration() {
     setup_test_env
     export ZSH_AI_PROVIDER="apfel"
-    unset ZSH_AI_APFEL_API_KEY OPENAI_API_KEY ZSH_AI_OPENAI_API_KEY
     _zsh_ai_validate_config >/dev/null 2>&1
     assert_equals "$?" "0"
     teardown_test_env
@@ -190,7 +189,7 @@ run_test "Default Ollama model is llama3.2" test_default_ollama_model
 run_test "Default Ollama URL is localhost:11434" test_default_ollama_url
 run_test "Validates anthropic provider" test_validates_anthropic_provider
 run_test "Default Apfel settings" test_default_apfel_settings
-run_test "Validates Apfel without an API key" test_validates_apfel_without_api_key
+run_test "Validates Apfel configuration" test_validates_apfel_configuration
 run_test "Rejects invalid Apfel token limit" test_rejects_invalid_apfel_token_limit
 run_test "Validates ollama provider" test_validates_ollama_provider
 run_test "Rejects invalid provider" test_rejects_invalid_provider

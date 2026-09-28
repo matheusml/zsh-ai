@@ -48,6 +48,10 @@ apfel --serve --port 11435
 export ZSH_AI_APFEL_URL="http://127.0.0.1:11435/v1/chat/completions"
 ```
 
+
+If Apfel reports that its context limit was exceeded, shorten the request or
+`ZSH_AI_PROMPT_EXTEND`.
+
 If Apfel reports that a response is incomplete, shorten the request or increase
 `ZSH_AI_APFEL_MAX_TOKENS`. zsh-ai rejects incomplete output instead of offering
 it as a command.

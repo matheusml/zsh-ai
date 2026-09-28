@@ -63,7 +63,7 @@ export OPENAI_API_KEY="your-key-here"
 | `grok` | `XAI_API_KEY` | `grok-4.3` |
 | `qwen` | `QWEN_API_KEY` | `qwen3.8-flash` |
 | `ollama` | None | `llama3.2` |
-| `apfel` | `ZSH_AI_APFEL_API_KEY` (optional) | `apple-foundationmodel` |
+| `apfel` | None | `apple-foundationmodel` |
 
 ### Apfel
 
@@ -81,9 +81,7 @@ Then set this before the plugin loads:
 export ZSH_AI_PROVIDER="apfel"
 ```
 
-Apfel has one fixed model: `apple-foundationmodel`. It does not use
-`OPENAI_API_KEY` or `ZSH_AI_OPENAI_API_KEY`. Set `ZSH_AI_APFEL_API_KEY` only
-when your Apfel server requires a bearer token.
+Apfel has one fixed model: `apple-foundationmodel`. It does not use API keys.
 
 `ZSH_AI_APFEL_URL` defaults to
 `http://127.0.0.1:11434/v1/chat/completions`. Apfel and Ollama both use port

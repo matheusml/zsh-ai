@@ -2,7 +2,7 @@
 
 Repository: `zsh-ai-public`  
 Branch: `rg/add-mac-apfel-support`  
-Status: Implementation and approved acceptance complete.
+Status: Complete. Lean local-only QA recorded below.
 
 ## 1. Goal and scope
 
@@ -81,12 +81,11 @@ Add only these provider-specific settings:
 | Setting | Default | Purpose |
 | --- | --- | --- |
 | `ZSH_AI_APFEL_URL` | `http://127.0.0.1:11434/v1/chat/completions` | Full chat-completions endpoint; permits a different local port. |
-| `ZSH_AI_APFEL_API_KEY` | Unset | Optional bearer token for an Apfel server started with authentication. |
 | `ZSH_AI_APFEL_MAX_TOKENS` | `256` | Positive integer output limit. |
 
-Use the fixed model ID `apple-foundationmodel`. Do not add a model-selection variable: Apfel exposes one Apple model. Do not inherit `OPENAI_API_KEY`, `ZSH_AI_OPENAI_API_KEY`, or OpenAI generation settings.
+Use the fixed model ID `apple-foundationmodel`. Do not add a model-selection variable: Apfel exposes one Apple model. Send no credentials and do not inherit `OPENAI_API_KEY`, `ZSH_AI_OPENAI_API_KEY`, or OpenAI generation settings.
 
-Validate the positive token limit only when Apfel is selected. Accept Apfel without an API key and without an `apfel` executable on the client's PATH; the provider communicates with the configured server. Keep validation free of network requests.
+Validate the positive token limit only when Apfel is selected. Accept Apfel without an `apfel` executable on the client's PATH; the provider communicates with the configured local server. Keep validation free of network requests.
 
 Apfel and Ollama both default to port 11434. Explain the conflict and show this alternative:
 
@@ -117,7 +116,6 @@ Create `lib/providers/apfel.zsh` with `_zsh_ai_query_apfel` and only the private
    - `max_tokens` from the Apfel setting;
    - `stream: false`;
    - `tool_choice: "none"`.
-5. Add a bearer header only when the Apfel-specific key is set.
 
 `tool_choice: "none"` is required. Apfel servers can have MCP tools attached, including remote tools. Upstream documents that this setting hides tools and prevents automatic MCP execution. Do not send tool definitions, enable permissive guardrails, or enable retries.
 
@@ -148,7 +146,6 @@ Handle these cases:
 | --- | --- |
 | Connection refused | Start Apfel; check the configured port and possible Ollama conflict. |
 | Request timeout | Explain that generation timed out; leave retry to the user. |
-| Authentication rejected | Check the optional Apfel token against the server configuration. |
 | Model unavailable | Check Apple Intelligence and model readiness. |
 | Guardrail refusal | Show the refusal as a failure; do not silently relax guardrails. |
 | Context overflow | Shorten the request or custom prompt extension. |
@@ -167,12 +164,12 @@ Use structured server error information where supplied. Avoid duplicating every 
 | `lib/utils.zsh` | Dispatch, discoverable no-argument Apfel setup guidance, and active model/endpoint information. |
 | `zsh-ai.plugin.zsh` | Source the new module; correct the provider summary comment if retained. |
 | `tests/providers/apfel.test.zsh` | Provider behavior and error regression tests. |
-| `tests/config.test.zsh` | Apfel configuration boundaries and lack of API-key requirement. |
+| `tests/config.test.zsh` | Apfel configuration boundaries. |
 | `tests/utils.test.zsh`, `tests/widget.test.zsh` | Extend only where existing coverage does not prove Apfel failure preserves the input and success remains review-only. |
 | `tests/test_helper.zsh` | Change only if required for reusable HTTP-status mocks or isolated cleanup. Keep Apfel-only fixtures in the provider test file. |
 | `README.md` | Mention the supported-Mac local option and link to setup. |
-| `INSTALL.md` | Provider table, setup, requirements, settings, token authentication, and port conflict. Clarify that Apfel has no selectable model. |
-| `TROUBLESHOOTING.md` | Missing server, unavailable model, authentication, context, and truncation guidance. |
+| `INSTALL.md` | Provider table, setup, requirements, settings, and port conflict. Clarify that Apfel has no selectable model or API key. |
+| `TROUBLESHOOTING.md` | Missing server, unavailable model, context, and truncation guidance. |
 
 No changes are planned for context collection, other provider implementations, the test runner, or CI infrastructure. The existing runner should discover the new tests. Keep this plan separate from the upstream feature diff unless the maintainers request a design document.
 
@@ -189,10 +186,10 @@ Cover consumer-visible behavior:
 - Empty, whitespace-only, missing, null, non-string, and malformed content are rejected.
 - Truncated output is rejected even when HTTP status and transport exit status indicate success.
 - Tool-call responses are rejected.
-- Connection errors, timeouts, authentication errors, context overflow, model unavailability, guardrail refusal, and server failures return usable errors rather than suggestions.
+- Connection errors, timeouts, context overflow, model unavailability, guardrail refusal, and server failures return usable errors rather than suggestions.
 - Error messages cannot become command text, and a failed inline request preserves the user's input.
 
-Use a throwaway local HTTP server for an integration smoke check of the real `curl` path. Observe the actual JSON request, HTTP-status handling, optional authentication, no inherited OpenAI key, and `tool_choice: "none"`. Include request text with quotes, newlines, dollar signs, backticks, and a leading hyphen. These characters must be transmitted as data, not interpreted by the shell.
+Use a throwaway local HTTP server for an integration smoke check of the real `curl` path. Observe the actual JSON request, HTTP-status handling, disabled curl configuration, no authorization header or inherited OpenAI key, and `tool_choice: "none"`. Include request text with quotes, newlines, dollar signs, backticks, and a leading hyphen. These characters must be transmitted as data, not interpreted by the shell.
 
 After the implementation and test changes are complete, run the full suite once:
 
@@ -244,7 +241,7 @@ Mark an item complete only after its result is observed. Record verification com
 
 - [x] Add Apfel settings and configuration validation without changing the default provider.
 - [x] Add the provider module and connect loading and dispatch.
-- [x] Implement bounded HTTP requests, Apfel-only authentication, and disabled tool use.
+- [x] Implement bounded credential-free HTTP requests and disabled tool use.
 - [x] Implement correct JSON parsing with and without `jq`.
 - [x] Reject incomplete, empty, malformed, multiline, and tool-call responses without offering them as commands.
 - [x] Show Apfel installation, service startup, provider selection, and requirements in `zsh-ai` usage output.
@@ -255,7 +252,7 @@ Mark an item complete only after its result is observed. Record verification com
 - [x] Add the behavior and error cases in section 7 using the existing test helpers.
 - [x] Run the focused provider and configuration tests; record their exit status.
 - [x] Run the full suite after implementation; resolve regressions.
-- [x] Exercise the real `curl` path against a controlled local HTTP fixture, including request escaping, authentication isolation, and HTTP failures.
+- [x] Exercise the real `curl` path against a controlled local HTTP fixture, including request escaping, no inherited OpenAI key or authorization header, and HTTP failures.
 - [x] Confirm automated fixtures require no Apfel server or binary. Linux execution is deferred by user choice because Apfel is unsupported there.
 
 ### End-to-end tests with real Apfel
@@ -308,11 +305,11 @@ Expected: the requested branch is active, the Mac meets Apfel requirements, the 
 In terminal A, use a separate port to avoid the normal Apfel/Ollama port:
 
 ```zsh
-env -u APFEL_MCP -u APFEL_TOKEN -u APFEL_DEBUG \
+env -u APFEL_MCP -u APFEL_DEBUG \
   apfel --serve --host 127.0.0.1 --port 11435
 ```
 
-Leave this terminal open. If the port is occupied, choose another unused port and change every test URL accordingly. Do not stop an unrelated service. This test server has no configured MCP tools or authentication; test optional authentication and tool disabling separately.
+Leave this terminal open. If the port is occupied, choose another unused port and change every test URL accordingly. Do not stop an unrelated service. This test server has no configured MCP tools; test tool disabling separately.
 
 In terminal B:
 
@@ -333,8 +330,7 @@ Expected: both requests succeed, health indicates model availability, and the mo
 Run from the repository root in terminal B:
 
 ```zsh
-env -u ZSH_AI_APFEL_API_KEY \
-  ZSH_AI_PROVIDER=apfel \
+ZSH_AI_PROVIDER=apfel \
   ZSH_AI_APFEL_URL=http://127.0.0.1:11435/v1/chat/completions \
   ZSH_AI_APFEL_MAX_TOKENS=256 \
   ZSH_AI_COMMENT_HOOK=false \
@@ -370,7 +366,6 @@ zsh -f
 export ZSH_AI_PROVIDER=apfel
 export ZSH_AI_APFEL_URL=http://127.0.0.1:11435/v1/chat/completions
 export ZSH_AI_APFEL_MAX_TOKENS=256
-unset ZSH_AI_APFEL_API_KEY
 unset ZSH_AI_COMMENT_HOOK ZSH_AI_TRIGGER
 source ./zsh-ai.plugin.zsh
 zsh-ai
@@ -442,9 +437,9 @@ All of the following are required:
 ### Automated and local integration
 
 - Baseline before implementation: `./run-tests.zsh` exited 0 with 249 passing tests.
-- Final focused checks: `zsh tests/providers/apfel.test.zsh` and `zsh tests/config.test.zsh` each exited 0.
-- Final complete suite: `./run-tests.zsh` exited 0 with 263 passing tests.
-- The Apfel provider test uses a loopback Perl fixture. It observed escaped request data, `--noproxy '*'`, Apfel-only authentication, HTTP failures, and `tool_choice: "none"` without a live Apfel server. It also covers transport timeouts, authentication, context overflow, guardrail refusal, rate limits, and generic server failures.
+- Final lean checks: `zsh tests/providers/apfel.test.zsh` exited 0 with 10 passing tests, including no-`jq` rejection of ordinary and oversized numeric content, `tool_calls: null`, no credentials, and disabled curl configuration. `zsh tests/config.test.zsh` exited 0 with 16 passing tests.
+- Final complete suite: `./run-tests.zsh` exited 0 with 264 passing tests.
+- The final loopback Perl fixture observed escaped request data, `--disable` as curl's first option, `--noproxy '*'`, no authorization header or inherited OpenAI credential, HTTP failures, and `tool_choice: "none"` without a live Apfel server. It also covers transport timeouts, context overflow, guardrail refusal, rate limits, and generic server failures.
 
 ### Real Apfel
 
@@ -452,6 +447,7 @@ All of the following are required:
 - A loopback server on `127.0.0.1:11435` returned healthy status and listed `apple-foundationmodel`.
 - Real provider requests succeeded with and without `jq`: `echo "jq-e2e"` with `/usr/bin/jq`, and `echo "zsh-ai-safe"` with `jq` absent. A stopped-server request returned the expected connection error.
 - The approved deterministic section-10 smoke returned `echo "APFEL_SMOKE_OK"` with exit 0. It passed `zsh -f -n` and was not executed.
+- Final credential-free no-`jq` smoke with sentinel OpenAI keys returned `echo "APFEL_LEAN_OK"` from real Apfel on `127.0.0.1:11435`. It passed `zsh -f -n` and was not executed.
 - The interactive `zsh-ai` and `# ` entries each produced editable suggestions without execution. A focused check of both exact `show git status` entries returned editable `git status`; appending and removing `X` in the ZLE buffer proved editability.
 - In a disposable directory, the reviewed suggestion `echo APFEL_E2E_OK` produced `APFEL_E2E_OK`. The test directory and temporary server were removed.
 - A real HTTP 200 response with `finish_reason: "length"` caused `Error: Apfel returned an incomplete response...` and no suggestion.
@@ -478,7 +474,7 @@ All of the following are required:
 **Summary**
 
 - Add `ZSH_AI_PROVIDER=apfel` through Apfel's local OpenAI-compatible endpoint.
-- Keep the fixed `apple-foundationmodel`, optional Apfel-only bearer token, bounded direct requests, and `tool_choice: "none"`.
+- Keep the fixed `apple-foundationmodel`, credential-free bounded direct requests, and `tool_choice: "none"`.
 - Reject empty, malformed, multiline, tool-call, and incomplete responses.
 - Add configuration, documentation, usage guidance, and Linux-safe provider tests.
 

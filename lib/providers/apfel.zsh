@@ -16,10 +16,10 @@ _zsh_ai_parse_apfel_completion() {
             end
         ' 2>/dev/null
     else
-        perl -MJSON::PP -MEncode=decode,FB_CROAK -0777 -e '
+        perl -MJSON::PP -MEncode=decode,FB_CROAK -MB=svref_2object,SVf_POK -0777 -e '
             my $input = do { local $/; <STDIN> };
             my $data = eval {
-                JSON::PP->new->utf8(0)->decode(decode("UTF-8", $input, FB_CROAK))
+                JSON::PP->new->allow_bignum->utf8(0)->decode(decode("UTF-8", $input, FB_CROAK))
             };
             binmode STDOUT, ":encoding(UTF-8)";
             unless (ref($data) eq "HASH"
@@ -34,7 +34,7 @@ _zsh_ai_parse_apfel_completion() {
                 print "invalid";
                 exit;
             }
-            if (exists $message->{tool_calls}) {
+            if (exists($message->{tool_calls}) && defined($message->{tool_calls})) {
                 print "tool";
             } elsif (defined($choice->{finish_reason}) && $choice->{finish_reason} eq "length") {
                 print "length";
@@ -42,7 +42,10 @@ _zsh_ai_parse_apfel_completion() {
                 print "reason";
             } else {
                 my $content = $message->{content};
-                print ref($content) || !defined($content) || $content !~ /\S/
+                my $content_is_string = defined($content)
+                    && !ref($content)
+                    && (svref_2object(\$content)->FLAGS & SVf_POK);
+                print !$content_is_string || $content !~ /\S/
                     ? "invalid"
                     : "ok\n$content";
             }
@@ -87,9 +90,7 @@ _zsh_ai_apfel_http_error() {
     message="${message:0:200}"
     local lower_message="${message:l}"
 
-    if [[ "$http_status" == "401" || "$http_status" == "403" ]]; then
-        echo "Error: Apfel authentication failed. Check ZSH_AI_APFEL_API_KEY."
-    elif [[ "$lower_message" == *"apple intelligence"* || "$lower_message" == *"model asset"* || "$lower_message" == *"model unavailable"* || "$lower_message" == *"assets are loading"* ]]; then
+    if [[ "$lower_message" == *"apple intelligence"* || "$lower_message" == *"model asset"* || "$lower_message" == *"model unavailable"* || "$lower_message" == *"assets are loading"* ]]; then
         echo "Error: Apfel's model is unavailable. Check Apple Intelligence and model readiness."
     elif [[ "$lower_message" == *"guardrail"* || "$lower_message" == *"safety"* || "$lower_message" == *"refus"* ]]; then
         echo "Error: Apfel refused the request because of its guardrails."
@@ -125,19 +126,16 @@ _zsh_ai_query_apfel() {
 EOF
 )
 
-    local auth_args=()
-    [[ -n "$ZSH_AI_APFEL_API_KEY" ]] && auth_args=(--header "Authorization: Bearer $ZSH_AI_APFEL_API_KEY")
 
     local body_file=$(mktemp) || {
         echo "Error: Unable to create a temporary file for the Apfel response."
         return 1
     }
     local curl_output
-    curl_output=$(curl --silent --show-error --noproxy '*' \
+    curl_output=$(curl --disable --silent --show-error --noproxy '*' \
         --connect-timeout 5 --max-time 90 \
         --output "$body_file" --write-out '%{http_code}' \
         --request POST \
-        "${auth_args[@]}" \
         --header "content-type: application/json" \
         --data-binary "$payload" \
         "$ZSH_AI_APFEL_URL" 2>&1)
