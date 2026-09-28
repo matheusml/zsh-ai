@@ -11,7 +11,6 @@ setup_apfel_test() {
     setup_test_env
     export ZSH_AI_PROVIDER="apfel"
     export ZSH_AI_APFEL_URL="http://127.0.0.1:11435/v1/chat/completions"
-    export ZSH_AI_APFEL_MAX_TOKENS="256"
     unset OPENAI_API_KEY ZSH_AI_OPENAI_API_KEY
     APFEL_TEST_BODY=''
     APFEL_TEST_STATUS="200"
@@ -20,21 +19,16 @@ setup_apfel_test() {
     APFEL_TEST_PAYLOAD_FILE=$(mktemp)
 
     curl() {
-        local output_file=""
         local payload=""
         local previous=""
         local argument
         for argument in "$@"; do
-            case "$previous" in
-                --output) output_file="$argument" ;;
-                --data-binary) payload="$argument" ;;
-            esac
+            [[ "$previous" == "--data-binary" ]] && payload="$argument"
             previous="$argument"
         done
         print -l -- "$@" > "$APFEL_TEST_ARGS_FILE"
         print -rn -- "$payload" > "$APFEL_TEST_PAYLOAD_FILE"
-        print -rn -- "$APFEL_TEST_BODY" > "$output_file"
-        print -rn -- "$APFEL_TEST_STATUS"
+        print -rn -- "$APFEL_TEST_BODY"$'\n'"$APFEL_TEST_STATUS"
         return "$APFEL_TEST_CURL_STATUS"
     }
 }
@@ -48,76 +42,26 @@ teardown_apfel_test() {
 
 test_complete_response_returns_command() {
     setup_apfel_test
+    export OPENAI_API_KEY="hosted-key"
+    export ZSH_AI_OPENAI_API_KEY="proxy-key"
     APFEL_TEST_BODY='{"choices":[{"finish_reason":"stop","message":{"content":"printf '\''%s\\n'\'' '\''café'\''"}}]}'
 
     local result
     result=$(_zsh_ai_query_apfel "show café")
     assert_equals "$?" "0"
     assert_equals "$result" "printf '%s\\n' 'café'"
+    local arguments=$(cat "$APFEL_TEST_ARGS_FILE")
+    local payload=$(cat "$APFEL_TEST_PAYLOAD_FILE")
+    assert_equals "${arguments%%$'\n'*}" "--disable"
+    assert_not_contains "$arguments" "Authorization: Bearer"
+    assert_contains "$arguments" "--noproxy"
+    assert_contains "$payload" '"max_tokens": 256'
+    assert_contains "$payload" '"tool_choice": "none"'
 
     teardown_apfel_test
 }
 
-test_complete_response_works_without_jq() {
-    setup_apfel_test
-    command() {
-        if [[ "$1" == "-v" && "$2" == "jq" ]]; then
-            return 1
-        fi
-        builtin command "$@"
-    }
-    APFEL_TEST_BODY='{"choices":[{"finish_reason":"stop","message":{"content":"printf '\''%s\\n'\'' '\''café'\''"}}]}'
 
-    local result
-    result=$(_zsh_ai_query_apfel "show café")
-    assert_equals "$?" "0"
-    assert_equals "$result" "printf '%s\\n' 'café'"
-
-    teardown_apfel_test
-}
-
-test_no_jq_rejects_nonstring_content_and_allows_null_tool_calls() {
-    setup_apfel_test
-    command() {
-        if [[ "$1" == "-v" && "$2" == "jq" ]]; then
-            return 1
-        fi
-        builtin command "$@"
-    }
-
-    local body
-    for body in \
-        '{"choices":[{"finish_reason":"stop","message":{"content":123}}]}' \
-        '{"choices":[{"finish_reason":"stop","message":{"content":999999999999999999999999999999999}}]}'; do
-        APFEL_TEST_BODY="$body"
-        local result
-        result=$(_zsh_ai_query_apfel "list files")
-        assert_equals "$?" "1"
-        assert_contains "$result" "Error: Apfel returned an unusable response."
-    done
-    teardown_apfel_test
-
-    setup_apfel_test
-    APFEL_TEST_BODY='{"choices":[{"finish_reason":"stop","message":{"content":"pwd","tool_calls":null}}]}'
-
-    local result
-    result=$(_zsh_ai_query_apfel "show the directory")
-    assert_equals "$?" "0"
-    assert_equals "$result" "pwd"
-    teardown_apfel_test
-}
-
-test_removes_one_markdown_fence() {
-    setup_apfel_test
-    APFEL_TEST_BODY='{"choices":[{"finish_reason":"stop","message":{"content":"```zsh\nprintf '\''%s\\n'\'' ok\n```"}}]}'
-
-    local result
-    result=$(_zsh_ai_query_apfel "print ok")
-    assert_equals "$?" "0"
-    assert_equals "$result" "printf '%s\\n' ok"
-
-    teardown_apfel_test
-}
 
 test_rejects_unusable_completion_content() {
     local body
@@ -126,6 +70,9 @@ test_rejects_unusable_completion_content() {
         '{"choices":[{"finish_reason":"stop","message":{"content":"   "}}]}' \
         '{"choices":[{"finish_reason":"stop","message":{"content":null}}]}' \
         '{"choices":[{"finish_reason":"stop","message":{"content":123}}]}' \
+        '{"choices":[{"finish_reason":"stop","message":{"content":999999999999999999999999999999999}}]}' \
+        '{"choices":[{"finish_reason":"stop","message":{"content":"```zsh\npwd\n```"}}]}' \
+        '{"choices":[{"finish_reason":"stop","message":{"content":"pwd\nls"}}]}' \
         '{"choices":[{"finish_reason":"stop","message":{}}]}' \
         'not json'; do
         setup_apfel_test
@@ -138,17 +85,6 @@ test_rejects_unusable_completion_content() {
     done
 }
 
-test_rejects_multiline_completion() {
-    setup_apfel_test
-    APFEL_TEST_BODY='{"choices":[{"finish_reason":"stop","message":{"content":"printf one\nprintf two"}}]}'
-
-    local result
-    result=$(_zsh_ai_query_apfel "print two lines")
-    assert_equals "$?" "1"
-    assert_contains "$result" "multiple lines"
-
-    teardown_apfel_test
-}
 
 test_rejects_incomplete_and_tool_responses() {
     setup_apfel_test
@@ -187,73 +123,17 @@ test_reports_transport_and_http_errors() {
     assert_contains "$result" "generation timed out"
     teardown_apfel_test
 
-
-    setup_apfel_test
-    APFEL_TEST_STATUS="400"
-    APFEL_TEST_BODY='{"error":{"message":"Context window exceeded"}}'
-
-    result=$(_zsh_ai_query_apfel "list files")
-    assert_equals "$?" "1"
-    assert_contains "$result" "context limit was exceeded"
-    teardown_apfel_test
-
-    setup_apfel_test
-    APFEL_TEST_STATUS="400"
-    APFEL_TEST_BODY='{"error":{"message":"Request refused by safety guardrails"}}'
-
-    result=$(_zsh_ai_query_apfel "list files")
-    assert_equals "$?" "1"
-    assert_contains "$result" "refused the request"
-    teardown_apfel_test
-
-    setup_apfel_test
-    APFEL_TEST_STATUS="429"
-    APFEL_TEST_BODY='{"error":{"message":"too many requests"}}'
-
-    result=$(_zsh_ai_query_apfel "list files")
-    assert_equals "$?" "1"
-    assert_contains "$result" "rate-limited"
-    teardown_apfel_test
-
     setup_apfel_test
     APFEL_TEST_STATUS="500"
     APFEL_TEST_BODY='{"error":{"message":"internal failure"}}'
 
     result=$(_zsh_ai_query_apfel "list files")
     assert_equals "$?" "1"
-    assert_contains "$result" "server failed (HTTP 500)"
-    teardown_apfel_test
-
-    setup_apfel_test
-    APFEL_TEST_STATUS="503"
-    APFEL_TEST_BODY='{"error":{"message":"Model assets are loading. Try again in a moment."}}'
-
-    result=$(_zsh_ai_query_apfel "list files")
-    assert_equals "$?" "1"
-    assert_contains "$result" "model is unavailable"
+    assert_contains "$result" "request failed (HTTP 500)"
+    assert_contains "$result" "internal failure"
     teardown_apfel_test
 }
 
-test_request_does_not_send_credentials() {
-    setup_apfel_test
-    export OPENAI_API_KEY="hosted-key"
-    export ZSH_AI_OPENAI_API_KEY="proxy-key"
-    APFEL_TEST_BODY='{"choices":[{"finish_reason":"stop","message":{"content":"pwd"}}]}'
-
-    _zsh_ai_query_apfel "show the directory" >/dev/null
-    local arguments=$(cat "$APFEL_TEST_ARGS_FILE")
-    local first_argument
-    IFS= read -r first_argument < "$APFEL_TEST_ARGS_FILE"
-    assert_equals "$first_argument" "--disable"
-    local payload=$(cat "$APFEL_TEST_PAYLOAD_FILE")
-    assert_not_contains "$arguments" "Authorization: Bearer"
-    assert_contains "$arguments" "--noproxy"
-    assert_contains "$payload" '"model": "apple-foundationmodel"'
-    assert_contains "$payload" '"max_tokens": 256'
-    assert_contains "$payload" '"stream": false'
-    assert_contains "$payload" '"tool_choice": "none"'
-    teardown_apfel_test
-}
 
 start_apfel_fixture() {
     local response_file="$1"
@@ -304,7 +184,6 @@ start_apfel_fixture() {
 test_real_curl_path_escapes_request_data() {
     setup_test_env
     export ZSH_AI_PROVIDER="apfel"
-    export ZSH_AI_APFEL_MAX_TOKENS="256"
     export OPENAI_API_KEY="hosted-key"
     export ZSH_AI_OPENAI_API_KEY="proxy-key"
     unfunction curl 2>/dev/null
@@ -352,13 +231,8 @@ test_real_curl_path_escapes_request_data() {
 
 echo "Running Apfel provider tests..."
 run_test "Returns a complete Apfel command" test_complete_response_returns_command
-run_test "Parses a complete Apfel command without jq" test_complete_response_works_without_jq
-run_test "Matches Apfel response rules without jq" test_no_jq_rejects_nonstring_content_and_allows_null_tool_calls
-run_test "Removes one Apfel markdown fence" test_removes_one_markdown_fence
 run_test "Rejects unusable Apfel completion content" test_rejects_unusable_completion_content
-run_test "Rejects multiline Apfel completions" test_rejects_multiline_completion
 run_test "Rejects incomplete and tool-call Apfel completions" test_rejects_incomplete_and_tool_responses
 run_test "Reports Apfel transport and HTTP errors" test_reports_transport_and_http_errors
-run_test "Does not send Apfel credentials" test_request_does_not_send_credentials
 run_test "Uses real curl with escaped request data" test_real_curl_path_escapes_request_data
 finish_tests

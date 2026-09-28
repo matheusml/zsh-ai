@@ -49,12 +49,9 @@ export ZSH_AI_APFEL_URL="http://127.0.0.1:11435/v1/chat/completions"
 ```
 
 
-If Apfel reports that its context limit was exceeded, shorten the request or
-`ZSH_AI_PROMPT_EXTEND`.
-
-If Apfel reports that a response is incomplete, shorten the request or increase
-`ZSH_AI_APFEL_MAX_TOKENS`. zsh-ai rejects incomplete output instead of offering
-it as a command.
+If Apfel reports that its context limit was exceeded or returned incomplete output,
+shorten the request or `ZSH_AI_PROMPT_EXTEND`. zsh-ai rejects incomplete output
+instead of offering it as a command.
 
 ## The comment trigger doesn't work
 
@@ -70,9 +67,6 @@ Choose a prefix you don't normally paste, such as `export ZSH_AI_TRIGGER=",,"`.
 Or set `export ZSH_AI_COMMENT_HOOK=false` and use `zsh-ai "..."` directly.
 Put the setting before the plugin loads, then open a new terminal.
 
-## JSON parsing fails
-
-Install `jq` with `brew install jq` or `sudo apt-get install jq`, then retry.
 
 ## Still stuck?
 

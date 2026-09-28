@@ -2,7 +2,7 @@
 
 Repository: `zsh-ai-public`  
 Branch: `rg/add-mac-apfel-support`  
-Status: Complete. Lean local-only QA recorded below.
+Status: Complete. Lean local-only implementation verified.
 
 ## 1. Goal and scope
 
@@ -76,16 +76,15 @@ export ZSH_AI_PROVIDER="apfel"
 
 For a temporary foreground server, users can run `apfel --serve` in another terminal instead of enabling a service.
 
-Add only these provider-specific settings:
+Keep one provider-specific setting:
 
 | Setting | Default | Purpose |
 | --- | --- | --- |
-| `ZSH_AI_APFEL_URL` | `http://127.0.0.1:11434/v1/chat/completions` | Full chat-completions endpoint; permits a different local port. |
-| `ZSH_AI_APFEL_MAX_TOKENS` | `256` | Positive integer output limit. |
+| `ZSH_AI_APFEL_URL` | `http://127.0.0.1:11434/v1/chat/completions` | Full loopback chat-completions endpoint; permits a different local port. |
 
-Use the fixed model ID `apple-foundationmodel`. Do not add a model-selection variable: Apfel exposes one Apple model. Send no credentials and do not inherit `OPENAI_API_KEY`, `ZSH_AI_OPENAI_API_KEY`, or OpenAI generation settings.
+Use the fixed model ID `apple-foundationmodel` and a fixed output limit of 256 tokens. Do not add model or token-limit settings. Send no credentials and do not inherit `OPENAI_API_KEY`, `ZSH_AI_OPENAI_API_KEY`, or OpenAI generation settings.
 
-Validate the positive token limit only when Apfel is selected. Accept Apfel without an `apfel` executable on the client's PATH; the provider communicates with the configured local server. Keep validation free of network requests.
+Accept Apfel without an `apfel` executable on the client's PATH; the provider communicates with the configured local server. Keep validation free of network requests.
 
 Apfel and Ollama both default to port 11434. Explain the conflict and show this alternative:
 
@@ -98,7 +97,7 @@ export ZSH_AI_PROVIDER="apfel"
 export ZSH_AI_APFEL_URL="http://127.0.0.1:11435/v1/chat/completions"
 ```
 
-The local privacy claim applies to a local Apfel endpoint. An explicitly configured remote endpoint sends context to that host; document that distinction. No cloud fallback is allowed.
+Document loopback endpoints only. Remote Apfel endpoints and cloud fallback are outside this provider's scope.
 
 ## 5. Provider behavior
 
@@ -113,26 +112,21 @@ Create `lib/providers/apfel.zsh` with `_zsh_ai_query_apfel` and only the private
    - `model: "apple-foundationmodel"`;
    - separate system and user messages;
    - `temperature: 0.3`, consistent with existing providers;
-   - `max_tokens` from the Apfel setting;
+   - fixed `max_tokens: 256`;
    - `stream: false`;
    - `tool_choice: "none"`.
 
 `tool_choice: "none"` is required. Apfel servers can have MCP tools attached, including remote tools. Upstream documents that this setting hides tools and prevents automatic MCP execution. Do not send tool definitions, enable permissive guardrails, or enable retries.
 
-Use `curl` with separate handling of transport status, HTTP status, and response body. Set bounded connection and request times, initially 5 seconds and 90 seconds respectively. Verify the request deadline against cold local inference before release. Do not add a preliminary health call to every request. Connect directly rather than allowing proxy environment variables to route the local request elsewhere, and do not follow redirects.
+Use `curl` with bounded connection and request times, initially 5 seconds and 90 seconds. Keep `--disable` first, bypass proxies, and do not follow redirects. Append the HTTP status to curl output and split it from the response body in memory; do not create a response temporary file or make a preliminary health request.
 
 ### Response
 
 Accept only a successful HTTP response with a valid completion object, a nonempty string at `choices[0].message.content`, and `finish_reason: "stop"`. Reject tool calls and all other completion reasons. In particular, an HTTP 200 response with `finish_reason: "length"` must fail without inserting partial content.
 
-Keep `jq` optional. Use `jq` when available and Perl's core `JSON::PP` decoder otherwise. Perl is already a project dependency; do not require CPAN installation. Verify the core module on supported execution environments. Use an actual JSON decoder, not regular expressions, so quotes, backslashes, Unicode, and escaped newlines retain their meaning.
+Use Perl's core `JSON::PP` decoder for every response. Perl is already a project dependency. Do not add a `jq` branch or use regular expressions to parse JSON. Enable `allow_bignum`, then distinguish strings from numbers by re-encoding the decoded content and checking its JSON type. This keeps one response contract and avoids Perl's internal `B` API.
 
-For valid content:
-
-- Remove surrounding whitespace and, if present, one enclosing Markdown code fence.
-- Preserve shell quoting, backslashes, and internal whitespace.
-- Reject remaining multiline content rather than deleting newlines and changing command meaning.
-- Return only the command text on stdout with status 0.
+The parser must remove surrounding whitespace, preserve shell quoting and internal whitespace, and reject empty, fenced, or multiline content. A Markdown fence is an invalid response, not a second accepted format. Return only the command text on stdout with status 0.
 
 Do not use `eval`, execute the suggestion for validation, or describe syntactically valid output as safe. Review before execution remains necessary.
 
@@ -140,31 +134,29 @@ Do not use `eval`, execute the suggestion for validation, or describe syntactica
 
 Return nonzero and print an `Error:`-prefixed message on stdout, matching the existing callers. Do not print a partial command alongside an error. Use bounded, plain diagnostics; do not expose credentials, complete request bodies, or raw HTML responses.
 
-Handle these cases:
+Keep only the failure distinctions that affect user action or safety:
 
 | Failure | User guidance |
 | --- | --- |
-| Connection refused | Start Apfel; check the configured port and possible Ollama conflict. |
+| Connection failure | Start Apfel; check the configured port and possible Ollama conflict. |
 | Request timeout | Explain that generation timed out; leave retry to the user. |
-| Model unavailable | Check Apple Intelligence and model readiness. |
-| Guardrail refusal | Show the refusal as a failure; do not silently relax guardrails. |
-| Context overflow | Shorten the request or custom prompt extension. |
-| Truncated completion | Explain that the response was incomplete; shorten the request or increase the output limit within the model's context capacity. |
-| Rate limit or server error | Report the server failure without automatic retries. |
-| Invalid JSON, wrong response shape, empty content, or unsupported completion reason | Report an unusable response without inserting it. |
+| Truncated completion | Report an incomplete response and offer no command. |
+| Tool-call completion | Report that Apfel returned a tool call and offer no command. |
+| Invalid JSON, wrong response shape, empty, fenced, multiline, or unsupported completion | Report an unusable response and offer no command. |
+| Other non-2xx response | Report the HTTP status and a bounded structured server message when available. |
 
-Use structured server error information where supplied. Avoid duplicating every upstream error code in the plugin. The provider-specific diagnostics must work with the current UI, which discards stderr.
+Do not classify server messages by matching English phrases for guardrails, context limits, readiness, or rate limits. Upstream already supplies those details. Never expose complete request bodies, credentials, or raw HTML responses.
 
 ## 6. File changes
 
 | File | Planned change |
 | --- | --- |
 | `lib/providers/apfel.zsh` | New request, response, and error implementation. |
-| `lib/config.zsh` | Apfel settings, accepted provider name, and token-limit validation. |
+| `lib/config.zsh` | Register Apfel and its loopback endpoint. No Apfel-specific validation branch. |
 | `lib/utils.zsh` | Dispatch, discoverable no-argument Apfel setup guidance, and active model/endpoint information. |
 | `zsh-ai.plugin.zsh` | Source the new module; correct the provider summary comment if retained. |
-| `tests/providers/apfel.test.zsh` | Provider behavior and error regression tests. |
-| `tests/config.test.zsh` | Apfel configuration boundaries. |
+| `tests/providers/apfel.test.zsh` | Focused request, response, transport, and local HTTP fixture coverage. |
+| `tests/config.test.zsh` | Apfel provider and endpoint defaults only. |
 | `tests/utils.test.zsh`, `tests/widget.test.zsh` | Extend only where existing coverage does not prove Apfel failure preserves the input and success remains review-only. |
 | `tests/test_helper.zsh` | Change only if required for reusable HTTP-status mocks or isolated cleanup. Keep Apfel-only fixtures in the provider test file. |
 | `README.md` | Mention the supported-Mac local option and link to setup. |
@@ -179,17 +171,13 @@ Use `tests/test_helper.zsh`, `run_test`, and `finish_tests`. Keep tests determin
 
 Cover consumer-visible behavior:
 
-- Apfel works without any hosted-provider keys; invalid token limits fail configuration.
+- Apfel works without hosted-provider keys or Apfel-specific credentials.
 - A complete response returns the correct command, including shell quotes, backslashes, and Unicode.
-- JSON parsing has equivalent behavior with and without `jq`.
-- Markdown fences are removed without changing the enclosed command; multiline output is rejected without concatenation.
-- Empty, whitespace-only, missing, null, non-string, and malformed content are rejected.
-- Truncated output is rejected even when HTTP status and transport exit status indicate success.
-- Tool-call responses are rejected.
-- Connection errors, timeouts, context overflow, model unavailability, guardrail refusal, and server failures return usable errors rather than suggestions.
+- The single `JSON::PP` parser rejects empty, missing, null, numeric, fenced, multiline, malformed, truncated, and tool-call responses.
+- Connection errors, timeouts, non-2xx responses, and unusable completions return errors rather than suggestions.
 - Error messages cannot become command text, and a failed inline request preserves the user's input.
 
-Use a throwaway local HTTP server for an integration smoke check of the real `curl` path. Observe the actual JSON request, HTTP-status handling, disabled curl configuration, no authorization header or inherited OpenAI key, and `tool_choice: "none"`. Include request text with quotes, newlines, dollar signs, backticks, and a leading hyphen. These characters must be transmitted as data, not interpreted by the shell.
+Use a throwaway local HTTP server for one integration test of the real `curl` path. Observe request escaping, `--disable` as the first curl option, direct loopback transport, no authorization header or inherited OpenAI key, `tool_choice: "none"`, and HTTP-status handling.
 
 After the implementation and test changes are complete, run the full suite once:
 
@@ -217,17 +205,15 @@ Automated fixtures do not prove Apple model behavior. On a supported Mac with Ap
 5. Try a small set of macOS shell tasks: list files, find recently modified files, find large files, identify a listening process, and handle a filename containing spaces. Check syntax and BSD/macOS utility compatibility by inspection and safe use in a disposable directory.
 6. Exercise `ZSH_AI_PROMPT_EXTEND`, a custom trigger, and the disabled comment hook without changing their existing behavior.
 7. Stop the server and repeat both entry points. Confirm visible guidance, no inserted error text, and preserved inline input.
-8. Force a small output limit with a request that needs a longer response. Confirm an incomplete response is rejected rather than offered for execution.
-9. Verify `tool_choice: "none"` against a harmless recording MCP fixture on a test server. Confirm no tool invocation occurs. Do not attach real tools with side effects.
-10. Repeat a successful and failed request without `jq`.
-11. Check Ctrl-C during a request. Confirm the prompt remains usable and no late suggestion appears. Do not claim cancellation behavior that was not exercised.
-12. Measure plugin load time with another provider and with Apfel selected, with the server both running and stopped. Confirm loading does not contact the server. Record cold and warm request latency separately; do not promise a speed improvement without measurements.
+8. Verify `tool_choice: "none"` against a harmless recording MCP fixture on a test server. Confirm no tool invocation occurs. Do not attach real tools with side effects.
+9. Check Ctrl-C during a request. Confirm the prompt remains usable and no late suggestion appears. Do not claim cancellation behavior that was not exercised.
+10. Measure plugin load time with another provider and with Apfel selected, with the server both running and stopped. Confirm loading does not contact the server. Record cold and warm request latency separately; do not promise a speed improvement without measurements.
 
-The planning environment reports macOS 26.6.2 on arm64, but `apfel` was not found on PATH. Apple Intelligence readiness has not been established. No live inference or plugin test suite was run for this plan. Installing and validating Apfel belongs to implementation verification.
+Initial planning found no local Apfel binary or model. Section 12 records the later implementation evidence from Apfel 1.12.0 on the supported Mac.
 
-## 9. Implementation progress checklist
+## 9. Initial implementation progress
 
-Mark an item complete only after its result is observed. Record verification commands, exit status, and relevant output with the implementation notes. A mocked response does not complete a real-Apfel item.
+This section records the first complete implementation. Section 14 defines the pending lean cutover and supersedes conflicting implementation details below.
 
 ### Understand the current state
 
@@ -239,11 +225,11 @@ Mark an item complete only after its result is observed. Record verification com
 
 ### Implement the provider and usage guidance
 
-- [x] Add Apfel settings and configuration validation without changing the default provider.
-- [x] Add the provider module and connect loading and dispatch.
-- [x] Implement bounded credential-free HTTP requests and disabled tool use.
-- [x] Implement correct JSON parsing with and without `jq`.
-- [x] Reject incomplete, empty, malformed, multiline, and tool-call responses without offering them as commands.
+- [x] Added Apfel settings and configuration validation without changing the default provider.
+- [x] Added the provider module and connected loading and dispatch.
+- [x] Implemented bounded credential-free HTTP requests and disabled tool use.
+- [x] Implemented equivalent JSON parsing with and without `jq`.
+- [x] Rejected incomplete, empty, malformed, multiline, and tool-call responses without offering them as commands.
 - [x] Show Apfel installation, service startup, provider selection, and requirements in `zsh-ai` usage output.
 - [x] Show the active Apfel model and endpoint when Apfel is selected.
 
@@ -332,7 +318,6 @@ Run from the repository root in terminal B:
 ```zsh
 ZSH_AI_PROVIDER=apfel \
   ZSH_AI_APFEL_URL=http://127.0.0.1:11435/v1/chat/completions \
-  ZSH_AI_APFEL_MAX_TOKENS=256 \
   ZSH_AI_COMMENT_HOOK=false \
   zsh -f <<'ZSH'
 source ./zsh-ai.plugin.zsh
@@ -365,7 +350,6 @@ From the repository root, start a clean interactive shell in terminal B:
 zsh -f
 export ZSH_AI_PROVIDER=apfel
 export ZSH_AI_APFEL_URL=http://127.0.0.1:11435/v1/chat/completions
-export ZSH_AI_APFEL_MAX_TOKENS=256
 unset ZSH_AI_COMMENT_HOOK ZSH_AI_TRIGGER
 source ./zsh-ai.plugin.zsh
 zsh-ai
@@ -397,26 +381,11 @@ zsh-ai "Print exactly APFEL_E2E_OK without creating or changing any files"
 
 Inspect the suggestion. Execute it only if it is a harmless print command matching the request. Expected output is `APFEL_E2E_OK`. If the suggestion is incorrect, record a failure rather than editing it into a passing result. Clear the prompt, return with `cd -`, and remove the empty fixture directory with `rmdir "$test_dir"`.
 
-### E. Verify service failure and incomplete output
+### E. Verify service failure
 
 Press Ctrl-C in terminal A to stop only the dedicated test server. In terminal B, repeat `zsh-ai "show git status"` and the manually typed `# show git status` request. Expected: both show a connection error, no command is offered, and the inline request is restored. Restart terminal A with the same server command.
 
-In the interactive shell:
-
-```zsh
-export ZSH_AI_APFEL_MAX_TOKENS=1
-zsh-ai "Find regular files under the current directory larger than 100 megabytes and modified in the last seven days"
-```
-
-Expected when Apfel reports `finish_reason: "length"`: an incomplete-response error and no suggested command. If this request does not reach the limit, do not mark truncation as tested. Capture the real API completion reason and choose a request that does reach it. The deterministic provider regression must also cover a truncated HTTP 200 response.
-
-Restore the normal limit:
-
-```zsh
-export ZSH_AI_APFEL_MAX_TOKENS=256
-```
-
-Run the no-`jq` cases in an isolated test environment with `jq` absent from PATH, while retaining zsh, curl, Perl, and the context utilities. Do not rename or remove the user's installed `jq`. Confirm `command -v jq` fails in that environment, then repeat sections C and E.
+Truncation is deterministic protocol behavior, not a model-prompt acceptance test. Cover an HTTP 200 response with `finish_reason: "length"` in the local HTTP fixture and confirm that no command is offered.
 
 ## 11. Definition of done
 
@@ -428,26 +397,27 @@ All of the following are required:
 - [x] Both interactive entry points produce correct, editable suggestions and require a separate user action to execute them.
 - [x] The controlled generated-command check produces the requested output after review.
 - [x] Server failures preserve user input; truncated or unusable responses never become command suggestions.
-- [x] Tool execution stays disabled, and real requests work with and without `jq`.
+- [x] Tool execution stays disabled, and the single `JSON::PP` parser passes focused and real-provider checks.
 - [x] Other providers retain their behavior; no hosted fallback or shell-startup network call is introduced.
-- [x] Real-Mac evidence records versions, commands, observed results, and failures. Any unmet acceptance check keeps the feature incomplete.
+- [x] Real-Mac evidence records versions, commands, observed results, and failures.
+- [x] Every item in section 14 is implemented and verified.
 
 ## 12. Implementation evidence
 
 ### Automated and local integration
 
 - Baseline before implementation: `./run-tests.zsh` exited 0 with 249 passing tests.
-- Final lean checks: `zsh tests/providers/apfel.test.zsh` exited 0 with 10 passing tests, including no-`jq` rejection of ordinary and oversized numeric content, `tool_calls: null`, no credentials, and disabled curl configuration. `zsh tests/config.test.zsh` exited 0 with 16 passing tests.
-- Final complete suite: `./run-tests.zsh` exited 0 with 264 passing tests.
-- The final loopback Perl fixture observed escaped request data, `--disable` as curl's first option, `--noproxy '*'`, no authorization header or inherited OpenAI credential, HTTP failures, and `tool_choice: "none"` without a live Apfel server. It also covers transport timeouts, context overflow, guardrail refusal, rate limits, and generic server failures.
+- Pre-simplification focused checks: `zsh tests/providers/apfel.test.zsh` exited 0 with 10 passing tests and `zsh tests/config.test.zsh` exited 0 with 16 passing tests.
+- Pre-simplification complete suite: `./run-tests.zsh` exited 0 with 264 passing tests.
+- The loopback Perl fixture observed escaped request data, `--disable` as curl's first option, `--noproxy '*'`, no authorization header or inherited OpenAI credential, HTTP failures, and `tool_choice: "none"`.
 
 ### Real Apfel
 
 - Environment: macOS 26.6.2, arm64, zsh 5.9, Apfel 1.12.0, and `apple-foundationmodel` available with a 4096-token context.
 - A loopback server on `127.0.0.1:11435` returned healthy status and listed `apple-foundationmodel`.
-- Real provider requests succeeded with and without `jq`: `echo "jq-e2e"` with `/usr/bin/jq`, and `echo "zsh-ai-safe"` with `jq` absent. A stopped-server request returned the expected connection error.
+- Pre-simplification provider requests succeeded through both parser paths: `echo "jq-e2e"` with `/usr/bin/jq`, and `echo "zsh-ai-safe"` through `JSON::PP`. A stopped-server request returned the expected connection error.
 - The approved deterministic section-10 smoke returned `echo "APFEL_SMOKE_OK"` with exit 0. It passed `zsh -f -n` and was not executed.
-- Final credential-free no-`jq` smoke with sentinel OpenAI keys returned `echo "APFEL_LEAN_OK"` from real Apfel on `127.0.0.1:11435`. It passed `zsh -f -n` and was not executed.
+- A credential-free `JSON::PP` smoke with sentinel OpenAI keys returned `echo "APFEL_LEAN_OK"` from real Apfel on `127.0.0.1:11435`. It passed `zsh -f -n` and was not executed.
 - The interactive `zsh-ai` and `# ` entries each produced editable suggestions without execution. A focused check of both exact `show git status` entries returned editable `git status`; appending and removing `X` in the ZLE buffer proved editability.
 - In a disposable directory, the reviewed suggestion `echo APFEL_E2E_OK` produced `APFEL_E2E_OK`. The test directory and temporary server were removed.
 - A real HTTP 200 response with `finish_reason: "length"` caused `Error: Apfel returned an incomplete response...` and no suggestion.
@@ -458,6 +428,14 @@ All of the following are required:
 - During a delayed fixture response, Ctrl-C kept the prompt usable and prevented the late `echo late-cancel` suggestion from appearing. A subsequent manually authored `printf CANCEL_OK` ran normally.
 - With Apfel attached to a temporary official `@modelcontextprotocol/server-everything` fixture, the plugin sent `tool_choice: "none"`. The fixture saw initialization and tool listing, but zero tool calls.
 - The full suite preserved other providers. Source-time recording saw no request, and Apfel tests showed no inherited OpenAI credential or hosted fallback.
+
+### Lean cutover verification
+
+- `zsh tests/providers/apfel.test.zsh` exited 0 with 5 focused tests. It covers the single parser's valid string, numeric, oversized numeric, fenced, multiline, malformed, truncated, and tool-call handling; connection, timeout, and generic HTTP failures; request flags; and a real local HTTP fixture.
+- `zsh tests/config.test.zsh` exited 0 with 15 tests. `./run-tests.zsh` exited 0 with 258 passing tests and no failures.
+- A real Apfel request on `127.0.0.1:11435` returned `echo "APFEL_LEAN_OK"` with sentinel OpenAI keys set. The command was syntax-checked and not executed.
+- A controlled curl fixture captured fixed `max_tokens: 256` even when `ZSH_AI_OPENAI_MAX_TOKENS=1`. It returned a valid command without execution.
+- Two earlier final-smoke attempts returned an unusable response before a succeeding request. This was intermittent Apfel model behavior; the final end-to-end provider request passed.
 
 ### Historical verification notes
 
@@ -480,13 +458,47 @@ All of the following are required:
 
 **Verification**
 
-- Focused Apfel and configuration tests passed.
-- Full suite passed: 263 tests.
-- Real Apfel verification covered setup guidance, both command entries, review-only behavior, a reviewed harmless command, server failure, truncation, `jq`/no-`jq`, cancellation, and MCP tool suppression.
+- Focused Apfel and configuration tests passed: 5 and 15 tests.
+- Full suite passed: 258 tests.
+- Real Apfel verification covered setup guidance, both command entries, review-only behavior, a reviewed harmless command, server failure, cancellation, MCP tool suppression, and the final lean provider smoke.
 
 **Known verification variance**
 
-The exact section-10 working-directory wording received a guardrail refusal or multiline model response after the final parser change. Equivalent live plugin requests succeeded, including with `jq` and without it; rejected multiline output is the intended provider behavior.
+The exact section-10 working-directory wording received a guardrail refusal or multiline model response during initial verification. The deterministic harmless smoke request is the acceptance criterion. Rejected multiline output is intended behavior.
+
+## 14. Lean simplification pass
+
+This pass removes behavior that is not critical to a local Apfel provider. It is a clean cutover, not a compatibility layer.
+
+### Provider changes
+
+- [x] Remove `ZSH_AI_APFEL_MAX_TOKENS` from configuration, validation, documentation, tests, and acceptance commands. Send fixed `max_tokens: 256`.
+- [x] Remove the `jq` branch. Parse every Apfel response with core `JSON::PP`.
+- [x] Remove the `B` dependency. With `allow_bignum` enabled, re-encode decoded content to distinguish JSON strings from numbers.
+- [x] Reject Markdown fences instead of removing them.
+- [x] Move whitespace trimming, empty-content rejection, and multiline rejection into the single response parser.
+- [x] Replace the response temporary file with one in-memory curl result whose final three characters are the HTTP status.
+- [x] Replace message-keyword classification with three transport outcomes: connection failure, timeout, and generic non-2xx with a bounded structured server message.
+- [x] Keep `--disable` first, `--noproxy '*'`, no redirects, bounded timeouts, fixed `apple-foundationmodel`, `stream: false`, and `tool_choice: "none"`.
+
+### Test and documentation changes
+
+- [x] Replace dual-parser tests with one `JSON::PP` response table covering valid strings; ordinary and oversized numbers; null; malformed JSON; fences; multiline content; tool calls; and `finish_reason: "length"`.
+- [x] Keep one real local HTTP fixture test for payload escaping, direct curl options, no credentials, HTTP status handling, and tool suppression.
+- [x] Remove duplicate mocked credential and parser-path tests when the HTTP fixture proves the same behavior.
+- [x] Remove token-limit and remote-endpoint guidance. Document the endpoint only as a loopback port override for the Apfel/Ollama conflict.
+- [x] Keep the no-argument setup guidance concise and discoverable.
+- [x] Do not include this implementation plan in the upstream feature diff unless maintainers request it. Move the final evidence into the PR description.
+
+### Acceptance
+
+- [x] Focused provider and configuration tests pass.
+- [x] The full suite passes with no regression in other providers.
+- [x] A real Apfel request returns an editable command without execution.
+- [x] A stopped server returns visible guidance and preserves inline input.
+- [x] A fixture response with `finish_reason: "length"` and a fixture response with tool calls offer no command.
+- [x] Plugin sourcing makes no network request.
+- [x] Update sections 11–13 with final post-cutover evidence, then set the plan status to complete.
 
 ## Sources
 

@@ -86,7 +86,7 @@ Apfel has one fixed model: `apple-foundationmodel`. It does not use API keys.
 `ZSH_AI_APFEL_URL` defaults to
 `http://127.0.0.1:11434/v1/chat/completions`. Apfel and Ollama both use port
 11434 by default. To run both, start Apfel on another local port and set its
-full endpoint:
+full loopback endpoint:
 
 ```zsh
 # In another terminal:
@@ -97,9 +97,7 @@ export ZSH_AI_PROVIDER="apfel"
 export ZSH_AI_APFEL_URL="http://127.0.0.1:11435/v1/chat/completions"
 ```
 
-`ZSH_AI_APFEL_MAX_TOKENS` defaults to `256` and must be a positive integer.
-An endpoint on another host sends shell context to that host. zsh-ai never
-falls back to a hosted provider.
+zsh-ai does not use API keys or a hosted fallback for Apfel.
 
 ### Ollama
 
