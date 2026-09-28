@@ -76,7 +76,8 @@ _zsh_ai_validate_config() {
     elif [[ "$ZSH_AI_PROVIDER" == "anthropic" ]]; then
         if [[ -z "$ANTHROPIC_API_KEY" ]]; then
             echo "zsh-ai: Warning: ANTHROPIC_API_KEY not set. Plugin will not function."
-            echo "zsh-ai: Set ANTHROPIC_API_KEY or use ZSH_AI_PROVIDER=ollama for local models."
+            echo "zsh-ai: Set ANTHROPIC_API_KEY, or ZSH_AI_CLAUDE_CODE=true to use the signed-in Claude Code CLI."
+            echo "zsh-ai: ZSH_AI_PROVIDER=ollama runs a local model instead. Settings must come before the plugin loads."
             return 1
         fi
     elif [[ "$ZSH_AI_PROVIDER" == "gemini" ]]; then
