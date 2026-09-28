@@ -22,7 +22,8 @@ zsh-ai "show what is using port 3000"
 ```
 
 Your request includes the directory path, nearby filenames, project type, git
-branch/status, and OS. Choose a hosted provider or run a local model with Ollama.
+branch/status, and OS. Choose a hosted provider, reuse the Claude Code CLI you're
+already signed in to, or run a local model with Ollama.
 
 ## Install
 
@@ -40,6 +41,9 @@ source "$(brew --prefix)/share/zsh-ai/zsh-ai.plugin.zsh"
 ```
 
 Run `source ~/.zshrc`, then try `# show current date`.
+
+No API key? If the [Claude Code](INSTALL.md#claude-code) CLI is signed in, use
+`export ZSH_AI_CLAUDE_CODE=true` instead of the key.
 
 See the [install guide](INSTALL.md) for Oh My Zsh, Antigen, manual installs,
 [other providers](INSTALL.md#providers), and local models.

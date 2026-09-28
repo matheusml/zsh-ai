@@ -126,6 +126,75 @@ test_rejects_missing_custom_provider_function() {
       }
 }
 
+test_default_claude_code_model() {
+    setup_test_env
+    unset ZSH_AI_CLAUDE_CODE_MODEL
+    source "$PLUGIN_DIR/lib/config.zsh"
+    assert_equals "$ZSH_AI_CLAUDE_CODE_MODEL" "haiku"
+    teardown_test_env
+}
+
+test_claude_code_safe_mode_on_by_default() {
+    setup_test_env
+    unset ZSH_AI_CLAUDE_CODE_SAFE_MODE
+    source "$PLUGIN_DIR/lib/config.zsh"
+    _zsh_ai_is_true "$ZSH_AI_CLAUDE_CODE_SAFE_MODE"
+    assert_equals "$?" "0"
+    teardown_test_env
+}
+
+test_claude_code_flag_selects_provider() {
+    setup_test_env
+    local value
+    for value in true on yes 1 enabled TRUE On; do
+        export ZSH_AI_CLAUDE_CODE="$value"
+        unset ZSH_AI_PROVIDER
+        source "$PLUGIN_DIR/lib/config.zsh"
+        assert_equals "$ZSH_AI_PROVIDER" "claude-code"
+    done
+    unset ZSH_AI_CLAUDE_CODE
+    teardown_test_env
+}
+
+test_claude_code_flag_off_keeps_provider() {
+    setup_test_env
+    local value
+    for value in "" false off no 0; do
+        export ZSH_AI_CLAUDE_CODE="$value"
+        unset ZSH_AI_PROVIDER
+        source "$PLUGIN_DIR/lib/config.zsh"
+        assert_equals "$ZSH_AI_PROVIDER" "anthropic"
+    done
+    unset ZSH_AI_CLAUDE_CODE
+    teardown_test_env
+}
+
+test_validates_claude_code_provider() {
+    setup_test_env
+    export ZSH_AI_PROVIDER="claude-code"
+    # A real binary stands in for the CLI; no API key should be required
+    export ZSH_AI_CLAUDE_CODE_BIN="true"
+    unset ANTHROPIC_API_KEY
+    _zsh_ai_validate_config >/dev/null 2>&1
+    assert_equals "$?" "0"
+    unset ZSH_AI_CLAUDE_CODE_BIN
+    teardown_test_env
+}
+
+test_rejects_claude_code_provider_without_cli() {
+    setup_test_env
+    export ZSH_AI_PROVIDER="claude-code"
+    export ZSH_AI_CLAUDE_CODE_BIN="definitely-not-a-real-binary-zsh-ai"
+
+    local output
+    output=$(_zsh_ai_validate_config 2>&1)
+    assert_equals "$?" "1"
+    assert_contains "$output" "not found in PATH"
+
+    unset ZSH_AI_CLAUDE_CODE_BIN
+    teardown_test_env
+}
+
 test_comment_hook_enabled_by_default() {
     setup_test_env
     unset ZSH_AI_COMMENT_HOOK
@@ -168,6 +237,12 @@ run_test "Validates gemini provider" test_validates_gemini_provider
 run_test "Validates openai provider" test_validates_openai_provider
 run_test "Validates custom provider" test_validates_custom_provider
 run_test "Rejects missing custom provider function" test_rejects_missing_custom_provider_function
+run_test "Default Claude Code model is haiku" test_default_claude_code_model
+run_test "Claude Code safe mode is on by default" test_claude_code_safe_mode_on_by_default
+run_test "ZSH_AI_CLAUDE_CODE selects the claude-code provider" test_claude_code_flag_selects_provider
+run_test "ZSH_AI_CLAUDE_CODE off keeps the configured provider" test_claude_code_flag_off_keeps_provider
+run_test "Validates claude-code provider without an API key" test_validates_claude_code_provider
+run_test "Rejects claude-code provider when the CLI is missing" test_rejects_claude_code_provider_without_cli
 run_test "Comment hook enabled by default" test_comment_hook_enabled_by_default
 run_test "Comment hook can be disabled" test_comment_hook_can_be_disabled
 run_test "Default trigger is '# '" test_default_trigger_is_hash

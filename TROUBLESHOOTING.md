@@ -11,7 +11,26 @@ Set the [key for your provider](INSTALL.md#providers) before the plugin loads in
 export ANTHROPIC_API_KEY="your-key-here"
 ```
 
-Keep keys out of public dotfiles. [Ollama](INSTALL.md#ollama) works without one.
+Keep keys out of public dotfiles. [Claude Code](INSTALL.md#claude-code) and
+[Ollama](INSTALL.md#ollama) work without one.
+
+## The Claude Code CLI isn't found or fails
+
+Check that `claude -p hello` works on its own. If the binary isn't on your `PATH`,
+point at it directly:
+
+```zsh
+export ZSH_AI_CLAUDE_CODE_BIN="$HOME/.local/bin/claude"
+```
+
+If suggestions come back wrapped in your project's conventions, safe mode is off;
+remove `ZSH_AI_CLAUDE_CODE_SAFE_MODE=false`. If your Claude Code credentials live
+in `~/.claude/settings.json` rather than environment variables, safe mode skips
+them, so pass the file back in:
+
+```zsh
+export ZSH_AI_CLAUDE_CODE_ARGS="--settings $HOME/.claude/settings.json"
+```
 
 ## Ollama isn't reachable
 

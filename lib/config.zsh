@@ -21,6 +21,13 @@
 : ${ZSH_AI_MISTRAL_MODEL:="mistral-small-latest"}  # Default Mistral model
 : ${ZSH_AI_MISTRAL_URL:="https://api.mistral.ai/v1/chat/completions"}  # Default Mistral URL
 
+# Claude Code CLI provider - uses the local `claude` binary, so no API key is needed
+: ${ZSH_AI_CLAUDE_CODE:=""}  # Set to true as a shortcut for ZSH_AI_PROVIDER=claude-code
+: ${ZSH_AI_CLAUDE_CODE_BIN:="claude"}  # Claude Code executable (name or full path)
+: ${ZSH_AI_CLAUDE_CODE_MODEL:="haiku"}  # Fast model for short command suggestions; empty uses Claude Code's own default
+: ${ZSH_AI_CLAUDE_CODE_SAFE_MODE:="true"}  # Keep CLAUDE.md, hooks, plugins and MCP servers out of the request
+: ${ZSH_AI_CLAUDE_CODE_ARGS:=""}  # Extra flags appended to the `claude` invocation
+
 # Inline trigger configuration
 : ${ZSH_AI_COMMENT_HOOK:="true"}  # Set to false/off/no/0 to disable the inline trigger widget entirely
 : ${ZSH_AI_TRIGGER:="# "}  # Prompt prefix that triggers AI (e.g. ",," instead of "# ")
@@ -33,19 +40,40 @@ _zsh_ai_comment_hook_enabled() {
     esac
 }
 
+# Return 0 if the value is an explicit opt-in, 1 otherwise (unset counts as off)
+_zsh_ai_is_true() {
+    case "${1:l}" in
+        true|on|yes|1|enabled) return 0 ;;
+        *) return 1 ;;
+    esac
+}
+
+# ZSH_AI_CLAUDE_CODE=true selects the provider on its own, so users without any
+# API key only need one export instead of also overriding ZSH_AI_PROVIDER
+if _zsh_ai_is_true "$ZSH_AI_CLAUDE_CODE"; then
+    ZSH_AI_PROVIDER="claude-code"
+fi
+
 # Optional: Extend the system prompt with custom instructions
 # ZSH_AI_PROMPT_EXTEND - Add custom instructions to the AI prompt without replacing the core prompt
 # Example: export ZSH_AI_PROMPT_EXTEND="Always prefer ripgrep (rg) over grep. Use modern CLI tools when available."
 
 # Provider validation
 _zsh_ai_validate_config() {
-    if [[ "$ZSH_AI_PROVIDER" != "anthropic" ]] && [[ "$ZSH_AI_PROVIDER" != "ollama" ]] && [[ "$ZSH_AI_PROVIDER" != "gemini" ]] && [[ "$ZSH_AI_PROVIDER" != "qwen" ]] && [[ "$ZSH_AI_PROVIDER" != "openai" ]] && [[ "$ZSH_AI_PROVIDER" != "grok" ]] && [[ "$ZSH_AI_PROVIDER" != "mistral" ]] && [[ "$ZSH_AI_PROVIDER" != "custom" ]]; then
-        echo "zsh-ai: Error: Invalid provider '$ZSH_AI_PROVIDER'. Use 'anthropic', 'ollama', 'gemini', 'openai', 'qwen', 'grok', 'mistral', or 'custom'."
+    if [[ "$ZSH_AI_PROVIDER" != "anthropic" ]] && [[ "$ZSH_AI_PROVIDER" != "claude-code" ]] && [[ "$ZSH_AI_PROVIDER" != "ollama" ]] && [[ "$ZSH_AI_PROVIDER" != "gemini" ]] && [[ "$ZSH_AI_PROVIDER" != "qwen" ]] && [[ "$ZSH_AI_PROVIDER" != "openai" ]] && [[ "$ZSH_AI_PROVIDER" != "grok" ]] && [[ "$ZSH_AI_PROVIDER" != "mistral" ]] && [[ "$ZSH_AI_PROVIDER" != "custom" ]]; then
+        echo "zsh-ai: Error: Invalid provider '$ZSH_AI_PROVIDER'. Use 'anthropic', 'claude-code', 'ollama', 'gemini', 'openai', 'qwen', 'grok', 'mistral', or 'custom'."
         return 1
     fi
 
     # Check requirements based on provider
-    if [[ "$ZSH_AI_PROVIDER" == "anthropic" ]]; then
+    if [[ "$ZSH_AI_PROVIDER" == "claude-code" ]]; then
+        # No API key: the CLI brings its own credentials
+        if ! command -v "$ZSH_AI_CLAUDE_CODE_BIN" &> /dev/null; then
+            echo "zsh-ai: Warning: Claude Code CLI '$ZSH_AI_CLAUDE_CODE_BIN' not found in PATH. Plugin will not function."
+            echo "zsh-ai: Install it from https://claude.com/claude-code, or set ZSH_AI_CLAUDE_CODE_BIN to its path."
+            return 1
+        fi
+    elif [[ "$ZSH_AI_PROVIDER" == "anthropic" ]]; then
         if [[ -z "$ANTHROPIC_API_KEY" ]]; then
             echo "zsh-ai: Warning: ANTHROPIC_API_KEY not set. Plugin will not function."
             echo "zsh-ai: Set ANTHROPIC_API_KEY or use ZSH_AI_PROVIDER=ollama for local models."

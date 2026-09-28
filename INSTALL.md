@@ -62,7 +62,34 @@ export OPENAI_API_KEY="your-key-here"
 | `mistral` | `MISTRAL_API_KEY` | `mistral-small-latest` |
 | `grok` | `XAI_API_KEY` | `grok-4.3` |
 | `qwen` | `QWEN_API_KEY` | `qwen3.8-flash` |
+| `claude-code` | None | `haiku` |
 | `ollama` | None | `llama3.2` |
+
+### Claude Code
+
+If you already have the [Claude Code](https://claude.com/claude-code) CLI signed
+in, it can answer the requests and no API key is needed:
+
+```zsh
+export ZSH_AI_CLAUDE_CODE=true
+```
+
+That is a shortcut for `ZSH_AI_PROVIDER="claude-code"`. Requests run through
+`claude -p` with tools, sessions, and slash commands disabled, so nothing runs on
+your machine and nothing is saved.
+
+| Variable | Default | Purpose |
+| --- | --- | --- |
+| `ZSH_AI_CLAUDE_CODE_MODEL` | `haiku` | Model alias or full name; empty uses Claude Code's own default |
+| `ZSH_AI_CLAUDE_CODE_BIN` | `claude` | Executable name or full path |
+| `ZSH_AI_CLAUDE_CODE_SAFE_MODE` | `true` | Keeps `CLAUDE.md`, hooks, plugins, and MCP servers out of the request |
+| `ZSH_AI_CLAUDE_CODE_ARGS` | Empty | Extra flags appended to the `claude` call |
+
+Leave safe mode on unless you want your project instructions to shape
+suggestions. With it off, a `CLAUDE.md` in the current directory can change or
+override the command you get back.
+
+Expect this provider to be slower than the HTTP ones; each request starts the CLI.
 
 ### Ollama
 

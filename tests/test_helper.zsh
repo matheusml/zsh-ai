@@ -184,7 +184,9 @@ setup_test_env() {
     export ZSH_AI_MODEL=""
     unset ZSH_AI_TRIGGER
     unset ZSH_AI_COMMENT_HOOK
-    
+    # Don't let a developer's own Claude Code opt-in override ZSH_AI_PROVIDER
+    unset ZSH_AI_CLAUDE_CODE
+
     # Reset mocks
     reset_mocks
 }
@@ -201,6 +203,7 @@ teardown_test_env() {
     unset ZSH_AI_MODEL
     unset ZSH_AI_TRIGGER
     unset ZSH_AI_COMMENT_HOOK
+    unset ZSH_AI_CLAUDE_CODE
     unset ZSH_AI_TEST_MODE
 }
 

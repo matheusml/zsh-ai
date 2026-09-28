@@ -29,6 +29,10 @@ _zsh_ai_query() {
         # The check prints its own user-facing error when Ollama is unreachable
         _zsh_ai_check_ollama || return 1
         _zsh_ai_query_ollama "$query"
+    elif [[ "$ZSH_AI_PROVIDER" == "claude-code" ]]; then
+        # The check prints its own user-facing error when the CLI is missing
+        _zsh_ai_check_claude_code || return 1
+        _zsh_ai_query_claude_code "$query"
     elif [[ "$ZSH_AI_PROVIDER" == "gemini" ]]; then
         _zsh_ai_query_gemini "$query"
     elif [[ "$ZSH_AI_PROVIDER" == "openai" ]]; then
@@ -55,6 +59,8 @@ zsh-ai() {
         echo "Current provider: $ZSH_AI_PROVIDER"
         if [[ "$ZSH_AI_PROVIDER" == "ollama" ]]; then
             echo "Ollama model: $ZSH_AI_OLLAMA_MODEL"
+        elif [[ "$ZSH_AI_PROVIDER" == "claude-code" ]]; then
+            echo "Claude Code model: ${ZSH_AI_CLAUDE_CODE_MODEL:-(Claude Code default)}"
         elif [[ "$ZSH_AI_PROVIDER" == "gemini" ]]; then
             echo "Gemini model: $ZSH_AI_GEMINI_MODEL"
         elif [[ "$ZSH_AI_PROVIDER" == "openai" ]]; then
