@@ -1,7 +1,7 @@
 #!/usr/bin/env zsh
 
 # zsh-ai - AI-powered command suggestions for zsh
-# Supports hosted providers plus local Ollama and Apfel models
+# Supports both hosted providers: OpenAI GPT, Anthropic Claude, Google Gemini, etc. and local providers: Ollama and Apfel```
 
 # Get the directory where this plugin is installed
 local plugin_dir="${0:A:h}"
