@@ -45,6 +45,12 @@ Run `source ~/.zshrc`, then try `# show current date`.
 See the [install guide](INSTALL.md) for Oh My Zsh, Antigen, manual installs,
 [other providers](INSTALL.md#providers), and local models.
 
+### Free local Apfel on supported Macs
+
+On Apple Silicon with macOS 26+, Apple Intelligence, and the on-device model
+available, Apfel generates commands locally without an API key or hosted
+provider. See the [Apfel setup](INSTALL.md#apfel).
+
 ## Make it yours
 
 Add command preferences before the plugin loads in `~/.zshrc`:
