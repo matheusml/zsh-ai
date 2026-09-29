@@ -39,7 +39,6 @@ test_default_apfel_endpoint() {
     teardown_test_env
 }
 
-
 test_validates_apfel_configuration() {
     setup_test_env
     export ZSH_AI_PROVIDER="apfel"
@@ -47,7 +46,6 @@ test_validates_apfel_configuration() {
     assert_equals "$?" "0"
     teardown_test_env
 }
-
 
 test_validates_anthropic_provider() {
     setup_test_env

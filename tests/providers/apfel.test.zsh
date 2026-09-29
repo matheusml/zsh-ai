@@ -61,8 +61,6 @@ test_complete_response_returns_command() {
     teardown_apfel_test
 }
 
-
-
 test_rejects_unusable_completion_content() {
     local body
     for body in \
@@ -84,7 +82,6 @@ test_rejects_unusable_completion_content() {
         teardown_apfel_test
     done
 }
-
 
 test_rejects_incomplete_and_tool_responses() {
     setup_apfel_test
