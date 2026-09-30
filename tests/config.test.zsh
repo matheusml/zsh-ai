@@ -31,6 +31,22 @@ test_default_ollama_url() {
     teardown_test_env
 }
 
+test_default_apfel_endpoint() {
+    setup_test_env
+    unset ZSH_AI_APFEL_URL
+    source "$PLUGIN_DIR/lib/config.zsh"
+    assert_equals "$ZSH_AI_APFEL_URL" "http://127.0.0.1:11434/v1/chat/completions"
+    teardown_test_env
+}
+
+test_validates_apfel_configuration() {
+    setup_test_env
+    export ZSH_AI_PROVIDER="apfel"
+    _zsh_ai_validate_config >/dev/null 2>&1
+    assert_equals "$?" "0"
+    teardown_test_env
+}
+
 test_validates_anthropic_provider() {
     setup_test_env
     export ZSH_AI_PROVIDER="anthropic"
@@ -162,6 +178,8 @@ run_test "Default provider is anthropic" test_default_provider
 run_test "Default Ollama model is llama3.2" test_default_ollama_model
 run_test "Default Ollama URL is localhost:11434" test_default_ollama_url
 run_test "Validates anthropic provider" test_validates_anthropic_provider
+run_test "Default Apfel endpoint" test_default_apfel_endpoint
+run_test "Validates Apfel configuration" test_validates_apfel_configuration
 run_test "Validates ollama provider" test_validates_ollama_provider
 run_test "Rejects invalid provider" test_rejects_invalid_provider
 run_test "Validates gemini provider" test_validates_gemini_provider

@@ -63,6 +63,41 @@ export OPENAI_API_KEY="your-key-here"
 | `grok` | `XAI_API_KEY` | `grok-4.3` |
 | `qwen` | `QWEN_API_KEY` | `qwen3.8-flash` |
 | `ollama` | None | `llama3.2` |
+| `apfel` | None | `apple-foundationmodel` |
+
+### Apfel
+
+Apfel uses Apple's on-device model. It needs an Apple Silicon Mac, macOS 26 or
+later, Apple Intelligence enabled, and the on-device model downloaded.
+
+```zsh
+brew install apfel
+brew services start apfel
+```
+
+Then set this before the plugin loads:
+
+```zsh
+export ZSH_AI_PROVIDER="apfel"
+```
+
+Apfel has one fixed model: `apple-foundationmodel`. It does not use API keys.
+
+`ZSH_AI_APFEL_URL` defaults to
+`http://127.0.0.1:11434/v1/chat/completions`. Apfel and Ollama both use port
+11434 by default. To run both, start Apfel on another local port and set its
+full loopback endpoint:
+
+```zsh
+# In another terminal:
+apfel --serve --port 11435
+
+# In ~/.zshrc, before loading zsh-ai:
+export ZSH_AI_PROVIDER="apfel"
+export ZSH_AI_APFEL_URL="http://127.0.0.1:11435/v1/chat/completions"
+```
+
+zsh-ai does not use API keys or a hosted fallback for Apfel.
 
 ### Ollama
 

@@ -8,6 +8,7 @@ source "$PLUGIN_DIR/lib/config.zsh"
 source "$PLUGIN_DIR/lib/context.zsh"
 source "$PLUGIN_DIR/lib/providers/anthropic.zsh"
 source "$PLUGIN_DIR/lib/providers/ollama.zsh"
+source "$PLUGIN_DIR/lib/providers/apfel.zsh"
 source "$PLUGIN_DIR/lib/utils.zsh"
 
 # Test functions
@@ -88,6 +89,21 @@ test_routes_to_ollama_provider() {
     teardown_test_env
 }
 
+test_routes_to_apfel_provider() {
+    setup_test_env
+    export ZSH_AI_PROVIDER="apfel"
+
+    _zsh_ai_query_apfel() {
+        echo "apfel:$1"
+    }
+
+    local output
+    output=$(_zsh_ai_query "test query")
+    assert_equals "$output" "apfel:test query"
+
+    teardown_test_env
+}
+
 test_checks_ollama_availability_before_querying() {
     setup_test_env
     export ZSH_AI_PROVIDER="ollama"
@@ -146,6 +162,26 @@ test_shows_ollama_model_in_usage() {
     assert_contains "$output" "Current provider: ollama"
     assert_contains "$output" "Ollama model: llama3.2"
     
+    teardown_test_env
+}
+
+test_shows_apfel_setup_and_active_endpoint() {
+    setup_test_env
+    export ZSH_AI_PROVIDER="apfel"
+    export ZSH_AI_APFEL_URL="http://127.0.0.1:11435/v1/chat/completions"
+
+    local output
+    output=$(zsh-ai)
+    local result=$?
+
+    assert_equals "$result" "1"
+    assert_contains "$output" "brew install apfel"
+    assert_contains "$output" "brew services start apfel"
+    assert_contains "$output" 'export ZSH_AI_PROVIDER="apfel"'
+    assert_contains "$output" "Apple Silicon"
+    assert_contains "$output" "Apfel model: apple-foundationmodel"
+    assert_contains "$output" "Apfel endpoint: http://127.0.0.1:11435/v1/chat/completions"
+
     teardown_test_env
 }
 
@@ -546,11 +582,13 @@ test_get_system_prompt_with_empty_extension() {
 echo "Running utils tests..."
 run_test "Routes to Anthropic provider when configured" test_routes_to_anthropic_provider
 run_test "Routes to Ollama provider when configured" test_routes_to_ollama_provider
+run_test "Routes to Apfel provider when configured" test_routes_to_apfel_provider
 run_test "Routes to custom provider when configured" test_routes_to_custom_provider
 run_test "Throws an error when provider returns non-zero exit code" test_provider_non_zero_exit_code
 run_test "Checks Ollama availability before querying" test_checks_ollama_availability_before_querying
 run_test "Shows usage when called without arguments" test_shows_usage_without_arguments
 run_test "Shows Ollama model in usage for Ollama provider" test_shows_ollama_model_in_usage
+run_test "Shows Apfel setup and active endpoint in usage" test_shows_apfel_setup_and_active_endpoint
 run_test "Shows command without executing" test_shows_command_without_executing
 run_test "Puts command in buffer" test_puts_command_in_buffer
 run_test "Handles API errors in zsh-ai command" test_handles_api_errors_in_zsh_ai
