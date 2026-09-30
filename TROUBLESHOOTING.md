@@ -68,16 +68,7 @@ Put the setting before the plugin loads, then open a new terminal.
 
 ## JSON parsing fails
 
-Anthropic, Gemini, Grok, Mistral, Ollama, OpenAI, and Qwen use `jq` when it is
-available. Install it, then retry:
-
-```zsh
-brew install jq
-# or
-sudo apt-get install jq
-```
-
-Apfel uses Perl's built-in `JSON::PP` parser and does not need `jq`.
+Install `jq` with `brew install jq` or `sudo apt-get install jq`, then retry.
 
 ## Still stuck?
 
