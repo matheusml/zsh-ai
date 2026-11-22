@@ -63,6 +63,7 @@ export OPENAI_API_KEY="your-key-here"
 | `grok` | `XAI_API_KEY` | `grok-4.3` |
 | `qwen` | `QWEN_API_KEY` | `qwen3.8-flash` |
 | `ollama` | None | `llama3.2` |
+| `lmstudio` | None | `ornith-1.5-9b` |
 | `apfel` | None | `apple-foundationmodel` |
 
 ### Apfel
@@ -109,6 +110,26 @@ ollama pull llama3.2
 
 Set `export ZSH_AI_PROVIDER="ollama"` in `~/.zshrc`. No API key needed;
 requests stay on your machine when you use the local server.
+
+### LM Studio
+
+Load a model in LM Studio, then start its local server (Developer tab, port 1234).
+Set this in `~/.zshrc`:
+
+```zsh
+export ZSH_AI_PROVIDER="lmstudio"
+```
+
+No API key is needed. zsh-ai calls the OpenAI-compatible chat completions endpoint
+(`/v1/chat/completions`) on `http://127.0.0.1:1234` and uses `ornith-1.5-9b` by default.
+To use another loaded model or server:
+
+```zsh
+export ZSH_AI_LMSTUDIO_MODEL="qwen/qwen3.5-9b"
+export ZSH_AI_LMSTUDIO_URL="http://127.0.0.1:1234/v1/chat/completions"  # full URL
+```
+
+`ZSH_AI_LMSTUDIO_MAX_TOKENS` defaults to `256`.
 
 ### OpenAI-compatible endpoints
 

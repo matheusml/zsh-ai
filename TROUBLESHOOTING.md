@@ -24,6 +24,17 @@ If it's already running, check the URL. It must be a base URL with no `/v1` suff
 export ZSH_AI_OLLAMA_URL="http://localhost:11434"
 ```
 
+## LM Studio isn't reachable
+
+Open LM Studio, load the model (`ornith-1.5-9b` by default), and start the local
+server on port 1234 from the Developer tab.
+
+If it's already running, `ZSH_AI_LMSTUDIO_URL` must be the full chat-completions URL:
+
+```zsh
+export ZSH_AI_LMSTUDIO_URL="http://127.0.0.1:1234/v1/chat/completions"
+```
+
 ## Apfel is not ready
 
 Apfel needs an Apple Silicon Mac, macOS 26 or later, Apple Intelligence, and
