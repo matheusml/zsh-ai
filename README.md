@@ -4,7 +4,7 @@
 
 <h1 align="center">zsh-ai</h1>
 
-Type `# ` and describe a command. Press Enter to get it at your prompt.
+Type `#` and describe a command. Press Enter to get it at your prompt.
 
 ```console
 $ # find files larger than 100mb changed this week
@@ -23,11 +23,12 @@ zsh-ai "show what is using port 3000"
 
 Your request includes the directory path, nearby filenames, project type, git
 branch/status, and OS. Choose a hosted provider, or run a local model with
-Ollama or Apfel. Apfel uses Apple's on-device model on supported Macs.
+Ollama, LM Studio, or Apfel. Apfel uses Apple's on-device model on supported Macs.
 
 ## Install
 
-Needs zsh 5.0+, `curl`, and `perl`. `jq` is optional.
+Needs zsh 5.0+, `curl`, and `perl`. `jq` is optional. `openssl` enables encrypted
+prompt history.
 
 ```zsh
 brew install matheusml/zsh-ai/zsh-ai
@@ -59,6 +60,7 @@ Add command preferences before the plugin loads in `~/.zshrc`:
 export ZSH_AI_PROMPT_EXTEND="Prefer rg over grep and fd over find."
 ```
 
-You can also [change the comment trigger or turn it off](INSTALL.md#inline-trigger).
+You can also [change the comment trigger or turn it off](INSTALL.md#inline-trigger),
+or [browse saved prompts with Up/Down](INSTALL.md#prompt-history).
 
 [Troubleshooting](TROUBLESHOOTING.md) · [Contributing](CONTRIBUTING.md) · [MIT license](LICENSE)

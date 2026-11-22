@@ -2,7 +2,8 @@
 
 This is a zsh plugin. Generated commands must land in the prompt for review
 before execution. Keep zsh 5.0+ support, `jq` optional, and runtime dependencies
-limited to zsh, `curl`, and `perl`.
+limited to zsh, `curl`, and `perl`. `openssl` is optional and only used for
+encrypted prompt history; without it, history is not saved.
 
 `zsh-ai.plugin.zsh` loads `lib/config.zsh`, context detection in `lib/context.zsh`,
 provider modules in `lib/providers/`, prompt construction and the direct command

@@ -37,6 +37,23 @@ _zsh_ai_comment_hook_enabled() {
     esac
 }
 
+# Print the prompt text when the buffer is an AI prompt, otherwise return 1.
+# With the default "# " trigger, "#list files" also counts. The text after the trigger must not be empty.
+_zsh_ai_prompt_query() {
+    local trigger="${ZSH_AI_TRIGGER:-# }"
+    local query
+    if [[ "$BUFFER" == "$trigger"* ]]; then
+        query="${BUFFER#"$trigger"}"
+    elif [[ "$trigger" == "# " && "$BUFFER" == "#"* ]]; then
+        query="${BUFFER#\#}"
+    else
+        return 1
+    fi
+    query="${query#"${query%%[! ]*}"}"
+    [[ -n "$query" ]] || return 1
+    printf '%s' "$query"
+}
+
 # Optional: Extend the system prompt with custom instructions
 # ZSH_AI_PROMPT_EXTEND - Add custom instructions to the AI prompt without replacing the core prompt
 # Example: export ZSH_AI_PROMPT_EXTEND="Always prefer ripgrep (rg) over grep. Use modern CLI tools when available."

@@ -4,10 +4,11 @@
 
 # Custom widget to intercept Enter key
 _zsh_ai_accept_line() {
-    local trigger="${ZSH_AI_TRIGGER:-# }"
+    _zsh_ai_history_reset
 
-    # Check if the line starts with the configured trigger and handle multiline input
-    if [[ "$BUFFER" == "$trigger"* ]]; then
+    # Check if the line is an AI prompt and handle multiline input
+    local query
+    if query=$(_zsh_ai_prompt_query); then
         # Check if buffer contains newlines (multiline command)
         if [[ "$BUFFER" == *$'\n'* ]]; then
             # Multiline command detected - execute normally without AI processing
@@ -15,8 +16,6 @@ _zsh_ai_accept_line() {
             return
         fi
 
-        # Extract the query (remove the trigger prefix)
-        local query="${BUFFER#"$trigger"}"
         
         # Add a loading indicator with animation
         local saved_buffer="$BUFFER"
@@ -61,6 +60,9 @@ _zsh_ai_accept_line() {
 
             # Move cursor to end of line
             CURSOR=$#BUFFER
+
+            _zsh_ai_history_save "$query"
+            _zsh_ai_history_reset
         else
             # Show error - keep it visible
             echo ""  # New line for better visibility
@@ -86,6 +88,15 @@ _zsh_ai_accept_line() {
     fi
 }
 
+# Up/down arrows browse saved prompts while the buffer is a zsh-ai prompt; otherwise the normal shell history runs
+_zsh_ai_history_up() {
+    _zsh_ai_history_step -1 || zle .up-line-or-history
+}
+
+_zsh_ai_history_down() {
+    _zsh_ai_history_step 1 || zle .down-line-or-history
+}
+
 # Create the widget and bind it
 # Uses precmd hook to defer registration until ZLE is fully initialized
 # This fixes the issue where zle -N fails silently during plugin sourcing
@@ -96,6 +107,12 @@ _zsh_ai_init_widget() {
 
     _zsh_ai_do_init() {
         zle -N accept-line _zsh_ai_accept_line
+        zle -N zsh-ai-history-up _zsh_ai_history_up
+        zle -N zsh-ai-history-down _zsh_ai_history_down
+        bindkey '^[[A' zsh-ai-history-up
+        bindkey '^[OA' zsh-ai-history-up
+        bindkey '^[[B' zsh-ai-history-down
+        bindkey '^[OB' zsh-ai-history-down
         add-zsh-hook -d precmd _zsh_ai_do_init
     }
     autoload -Uz add-zsh-hook
