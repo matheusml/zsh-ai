@@ -6,6 +6,9 @@
 : ${ZSH_AI_PROVIDER:="anthropic"}  # Default to anthropic for backwards compatibility
 : ${ZSH_AI_OLLAMA_MODEL:="llama3.2"}  # Popular fast model
 : ${ZSH_AI_OLLAMA_URL:="http://localhost:11434"}  # Default Ollama URL
+: ${ZSH_AI_LMSTUDIO_MODEL:="ornith-1.5-9b"}  # Default LM Studio model
+: ${ZSH_AI_LMSTUDIO_URL:="http://127.0.0.1:1234/v1/chat/completions"}  # Full LM Studio chat-completions URL
+: ${ZSH_AI_LMSTUDIO_MAX_TOKENS:=256}  # Maximum number of tokens per request
 : ${ZSH_AI_APFEL_URL:="http://127.0.0.1:11434/v1/chat/completions"}  # Full Apfel chat-completions URL
 : ${ZSH_AI_GEMINI_MODEL:="gemini-3.5-flash-lite"}  # Stable, low-latency Flash-Lite model
 : ${ZSH_AI_OPENAI_MODEL:="gpt-5.6-luna"}  # Cost-efficient model for short command suggestions
@@ -34,14 +37,31 @@ _zsh_ai_comment_hook_enabled() {
     esac
 }
 
+# Print the prompt text when the buffer is an AI prompt, otherwise return 1.
+# With the default "# " trigger, "#list files" also counts. The text after the trigger must not be empty.
+_zsh_ai_prompt_query() {
+    local trigger="${ZSH_AI_TRIGGER:-# }"
+    local query
+    if [[ "$BUFFER" == "$trigger"* ]]; then
+        query="${BUFFER#"$trigger"}"
+    elif [[ "$trigger" == "# " && "$BUFFER" == "#"* ]]; then
+        query="${BUFFER#\#}"
+    else
+        return 1
+    fi
+    query="${query#"${query%%[! ]*}"}"
+    [[ -n "$query" ]] || return 1
+    printf '%s' "$query"
+}
+
 # Optional: Extend the system prompt with custom instructions
 # ZSH_AI_PROMPT_EXTEND - Add custom instructions to the AI prompt without replacing the core prompt
 # Example: export ZSH_AI_PROMPT_EXTEND="Always prefer ripgrep (rg) over grep. Use modern CLI tools when available."
 
 # Provider validation
 _zsh_ai_validate_config() {
-    if [[ "$ZSH_AI_PROVIDER" != "anthropic" ]] && [[ "$ZSH_AI_PROVIDER" != "ollama" ]] && [[ "$ZSH_AI_PROVIDER" != "apfel" ]] && [[ "$ZSH_AI_PROVIDER" != "gemini" ]] && [[ "$ZSH_AI_PROVIDER" != "qwen" ]] && [[ "$ZSH_AI_PROVIDER" != "openai" ]] && [[ "$ZSH_AI_PROVIDER" != "grok" ]] && [[ "$ZSH_AI_PROVIDER" != "mistral" ]] && [[ "$ZSH_AI_PROVIDER" != "custom" ]]; then
-        echo "zsh-ai: Error: Invalid provider '$ZSH_AI_PROVIDER'. Use 'anthropic', 'ollama', 'apfel', 'gemini', 'openai', 'qwen', 'grok', 'mistral', or 'custom'."
+    if [[ "$ZSH_AI_PROVIDER" != "anthropic" ]] && [[ "$ZSH_AI_PROVIDER" != "ollama" ]] && [[ "$ZSH_AI_PROVIDER" != "lmstudio" ]] && [[ "$ZSH_AI_PROVIDER" != "apfel" ]] && [[ "$ZSH_AI_PROVIDER" != "gemini" ]] && [[ "$ZSH_AI_PROVIDER" != "qwen" ]] && [[ "$ZSH_AI_PROVIDER" != "openai" ]] && [[ "$ZSH_AI_PROVIDER" != "grok" ]] && [[ "$ZSH_AI_PROVIDER" != "mistral" ]] && [[ "$ZSH_AI_PROVIDER" != "custom" ]]; then
+        echo "zsh-ai: Error: Invalid provider '$ZSH_AI_PROVIDER'. Use 'anthropic', 'ollama', 'lmstudio', 'apfel', 'gemini', 'openai', 'qwen', 'grok', 'mistral', or 'custom'."
         return 1
     fi
 

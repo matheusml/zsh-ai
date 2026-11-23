@@ -29,6 +29,9 @@ _zsh_ai_query() {
         # The check prints its own user-facing error when Ollama is unreachable
         _zsh_ai_check_ollama || return 1
         _zsh_ai_query_ollama "$query"
+    elif [[ "$ZSH_AI_PROVIDER" == "lmstudio" ]]; then
+        _zsh_ai_check_lmstudio || return 1
+        _zsh_ai_query_lmstudio "$query"
     elif [[ "$ZSH_AI_PROVIDER" == "apfel" ]]; then
         _zsh_ai_query_apfel "$query"
     elif [[ "$ZSH_AI_PROVIDER" == "gemini" ]]; then
@@ -63,6 +66,9 @@ zsh-ai() {
         echo "See INSTALL.md#apfel for setup and port-conflict guidance."
         if [[ "$ZSH_AI_PROVIDER" == "ollama" ]]; then
             echo "Ollama model: $ZSH_AI_OLLAMA_MODEL"
+        elif [[ "$ZSH_AI_PROVIDER" == "lmstudio" ]]; then
+            echo "LM Studio model: $ZSH_AI_LMSTUDIO_MODEL"
+            echo "LM Studio endpoint: $ZSH_AI_LMSTUDIO_URL"
         elif [[ "$ZSH_AI_PROVIDER" == "apfel" ]]; then
             echo "Apfel model: apple-foundationmodel"
             echo "Apfel endpoint: $ZSH_AI_APFEL_URL"

@@ -1,7 +1,8 @@
 # Install and configure zsh-ai
 
 You'll need zsh 5.0+, `curl`, and `perl`. Install `jq` for more reliable response
-parsing; the plugin also works without it.
+parsing; the plugin also works without it. Install `openssl` if you want encrypted
+prompt history; without it, history is simply not saved.
 
 ## Install
 
@@ -63,6 +64,7 @@ export OPENAI_API_KEY="your-key-here"
 | `grok` | `XAI_API_KEY` | `grok-4.3` |
 | `qwen` | `QWEN_API_KEY` | `qwen3.8-flash` |
 | `ollama` | None | `llama3.2` |
+| `lmstudio` | None | `ornith-1.5-9b` |
 | `apfel` | None | `apple-foundationmodel` |
 
 ### Apfel
@@ -109,6 +111,26 @@ ollama pull llama3.2
 
 Set `export ZSH_AI_PROVIDER="ollama"` in `~/.zshrc`. No API key needed;
 requests stay on your machine when you use the local server.
+
+### LM Studio
+
+Load a model in LM Studio, then start its local server (Developer tab, port 1234).
+Set this in `~/.zshrc`:
+
+```zsh
+export ZSH_AI_PROVIDER="lmstudio"
+```
+
+No API key is needed. zsh-ai calls the OpenAI-compatible chat completions endpoint
+(`/v1/chat/completions`) on `http://127.0.0.1:1234` and uses `ornith-1.5-9b` by default.
+To use another loaded model or server:
+
+```zsh
+export ZSH_AI_LMSTUDIO_MODEL="qwen/qwen3.5-9b"
+export ZSH_AI_LMSTUDIO_URL="http://127.0.0.1:1234/v1/chat/completions"  # full URL
+```
+
+`ZSH_AI_LMSTUDIO_MAX_TOKENS` defaults to `256`.
 
 ### OpenAI-compatible endpoints
 
@@ -172,7 +194,7 @@ export ZSH_AI_PROMPT_EXTEND="Prefer rg over grep, fd over find, and bat over cat
 
 ### Inline trigger
 
-The default trigger is `# `, including the space. To change it:
+The default trigger is `#`, so both `# list files` and `#list files` work. To change it:
 
 ```zsh
 export ZSH_AI_TRIGGER=",,"
@@ -185,6 +207,29 @@ export ZSH_AI_COMMENT_HOOK=false
 ```
 
 `off`, `no`, `0`, and `disabled` also turn the hook off, ignoring case.
+
+### Prompt history
+
+After a successful generation, the request is saved and can be recalled while
+typing a new prompt. Type `#`, then press Up to go through older requests and Down
+to go forward again. Your unfinished draft comes back at the end. Outside a
+prompt, Up and Down use the normal shell history.
+
+History is encrypted with AES-256-CBC and a random per-user key. Nothing is
+stored if `openssl` is not installed.
+
+| Item | Location |
+| --- | --- |
+| Encrypted prompts | `${XDG_DATA_HOME:-$HOME/.local/share}/zsh-ai/history.enc` |
+| Encryption key | `${XDG_DATA_HOME:-$HOME/.local/share}/zsh-ai/history.key` |
+
+Keep the key file private and backed up. Without it, saved prompts cannot be
+read. To turn history off, or limit how many prompts are kept:
+
+```zsh
+export ZSH_AI_HISTORY=false   # also off, no, 0, disabled
+export ZSH_AI_HISTORY_MAX=500 # default
+```
 
 ## Try it
 
