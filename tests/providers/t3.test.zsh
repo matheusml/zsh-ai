@@ -275,6 +275,18 @@ test_keeps_unicode_reply() {
     teardown_t3_test
 }
 
+test_works_with_noclobber() {
+    local cli result
+    for cli in claudeAgent codex gemini; do
+        setup_t3_test
+        export ZSH_AI_T3_PROVIDER="$cli"
+        result=$(setopt noclobber; _zsh_ai_query_t3 "list files" 2>&1)
+        assert_equals "$?" "0"
+        assert_equals "$result" "ls -la"
+        teardown_t3_test
+    done
+}
+
 echo "Running T3 provider tests..."
 run_test "Claude runs one-off without tools" test_claude_runs_one_off_without_tools
 run_test "Uses T3 binary and home for Claude" test_uses_t3_binary_and_home_for_claude
@@ -291,4 +303,5 @@ run_test "Reports CLI failure with stderr" test_reports_cli_failure_with_stderr
 run_test "Reports empty reply" test_reports_empty_reply
 run_test "Cleans reply" test_cleans_reply
 run_test "Keeps unicode reply" test_keeps_unicode_reply
+run_test "Works with noclobber set" test_works_with_noclobber
 finish_tests

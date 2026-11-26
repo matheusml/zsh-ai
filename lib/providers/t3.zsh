@@ -105,7 +105,7 @@ _zsh_ai_t3_run_claude() {
     [[ -n "$model" ]] && args+=(--model "$model")
     [[ -n "$home" ]] && env_args=(CLAUDE_CONFIG_DIR="$home")
 
-    env "${env_args[@]}" "$binary" "${args[@]}" "$query" </dev/null 2>"$errfile"
+    env "${env_args[@]}" "$binary" "${args[@]}" "$query" </dev/null 2>|"$errfile"
 }
 
 _zsh_ai_t3_run_codex() {
@@ -119,7 +119,7 @@ _zsh_ai_t3_run_codex() {
     [[ -n "$home" ]] && env_args=(CODEX_HOME="$home")
 
     env "${env_args[@]}" "$binary" "${args[@]}" "${system_prompt}"$'\n\n'"User request: ${query}" \
-        </dev/null >/dev/null 2>"$errfile"
+        </dev/null >/dev/null 2>|"$errfile"
     local exit_code=$?
     [[ -r "$outfile" ]] && cat "$outfile"
     rm -rf "$workdir"
@@ -134,7 +134,7 @@ _zsh_ai_t3_run_gemini() {
     [[ -n "$model" ]] && args+=(-m "$model")
 
     (cd "$workdir" && "$binary" "${args[@]}" -p "${system_prompt}"$'\n\n'"User request: ${query}" \
-        </dev/null 2>"$errfile")
+        </dev/null 2>|"$errfile")
     local exit_code=$?
     rm -rf "$workdir"
     return $exit_code
