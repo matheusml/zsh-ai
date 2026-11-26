@@ -17,6 +17,7 @@ source "${plugin_dir}/lib/providers/openai.zsh"
 source "${plugin_dir}/lib/providers/qwen.zsh"
 source "${plugin_dir}/lib/providers/grok.zsh"
 source "${plugin_dir}/lib/providers/mistral.zsh"
+source "${plugin_dir}/lib/providers/t3.zsh"
 source "${plugin_dir}/lib/utils.zsh"
 source "${plugin_dir}/lib/widget.zsh"
 

@@ -172,6 +172,37 @@ test_default_trigger_is_hash() {
     teardown_test_env
 }
 
+test_validates_t3_provider() {
+    setup_test_env
+    export ZSH_AI_PROVIDER="t3"
+    export ZSH_AI_T3_PROVIDER="codex"
+    _zsh_ai_validate_config >/dev/null 2>&1
+    assert_equals "$?" "0"
+    export ZSH_AI_T3_PROVIDER="claudeAgent"
+    teardown_test_env
+}
+
+test_rejects_empty_t3_provider() {
+    setup_test_env
+    export ZSH_AI_PROVIDER="t3"
+    export ZSH_AI_T3_PROVIDER=""
+    local output
+    output=$(_zsh_ai_validate_config 2>&1)
+    assert_equals "$?" "1"
+    assert_contains "$output" "ZSH_AI_T3_PROVIDER"
+    export ZSH_AI_T3_PROVIDER="claudeAgent"
+    teardown_test_env
+}
+
+test_default_t3_settings() {
+    setup_test_env
+    unset ZSH_AI_T3_PROVIDER ZSH_AI_T3_MODEL
+    source "$PLUGIN_DIR/lib/config.zsh"
+    assert_equals "$ZSH_AI_T3_PROVIDER" "claudeAgent"
+    assert_equals "$ZSH_AI_T3_MODEL" ""
+    teardown_test_env
+}
+
 # Run tests
 echo "Running config tests..."
 run_test "Default provider is anthropic" test_default_provider
@@ -185,6 +216,9 @@ run_test "Rejects invalid provider" test_rejects_invalid_provider
 run_test "Validates gemini provider" test_validates_gemini_provider
 run_test "Validates openai provider" test_validates_openai_provider
 run_test "Validates custom provider" test_validates_custom_provider
+run_test "Validates t3 provider" test_validates_t3_provider
+run_test "Rejects empty T3 provider" test_rejects_empty_t3_provider
+run_test "Default T3 settings" test_default_t3_settings
 run_test "Rejects missing custom provider function" test_rejects_missing_custom_provider_function
 run_test "Comment hook enabled by default" test_comment_hook_enabled_by_default
 run_test "Comment hook can be disabled" test_comment_hook_can_be_disabled

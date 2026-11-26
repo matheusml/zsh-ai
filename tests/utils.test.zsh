@@ -104,6 +104,22 @@ test_routes_to_apfel_provider() {
     teardown_test_env
 }
 
+test_routes_to_t3_provider() {
+    setup_test_env
+    export ZSH_AI_PROVIDER="t3"
+
+    _zsh_ai_query_t3() {
+        echo "t3:$1"
+    }
+
+    local output
+    output=$(_zsh_ai_query "test query")
+    assert_equals "$output" "t3:test query"
+
+    unfunction _zsh_ai_query_t3
+    teardown_test_env
+}
+
 test_checks_ollama_availability_before_querying() {
     setup_test_env
     export ZSH_AI_PROVIDER="ollama"
@@ -583,6 +599,7 @@ echo "Running utils tests..."
 run_test "Routes to Anthropic provider when configured" test_routes_to_anthropic_provider
 run_test "Routes to Ollama provider when configured" test_routes_to_ollama_provider
 run_test "Routes to Apfel provider when configured" test_routes_to_apfel_provider
+run_test "Routes to T3 provider when configured" test_routes_to_t3_provider
 run_test "Routes to custom provider when configured" test_routes_to_custom_provider
 run_test "Throws an error when provider returns non-zero exit code" test_provider_non_zero_exit_code
 run_test "Checks Ollama availability before querying" test_checks_ollama_availability_before_querying
