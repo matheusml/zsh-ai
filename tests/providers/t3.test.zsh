@@ -287,13 +287,55 @@ test_works_with_noclobber() {
     done
 }
 
+test_gemini_skips_t3_settings() {
+    local provider result log
+    for provider in gemini google; do
+        setup_t3_test
+        export ZSH_AI_T3_PROVIDER="$provider"
+        write_settings '{"providerInstances":{"gemini":{"driver":"antigravity","enabled":false,"config":{"binaryPath":"/nonexistent/gemini"}}}}'
+        FAKE_OUTPUT="pwd"
+
+        result=$(_zsh_ai_query_t3 "where am I")
+        assert_equals "$?" "0"
+        assert_equals "$result" "pwd"
+        log=$(cat "$T3_TEST_LOG")
+        assert_contains "$log" "--- gemini"
+        assert_contains "$log" $'ARG=-m\nARG=gemini-3.8-flash'
+
+        teardown_t3_test
+    done
+}
+
+test_effective_model_resolves_custom_instance_driver() {
+    setup_t3_test
+    write_settings '{"providerInstances":{"codexWork":{"driver":"codex"},"gemini":{"driver":"antigravity","enabled":false}}}'
+
+    export ZSH_AI_T3_PROVIDER="codexWork"
+    export ZSH_AI_T3_MODEL=""
+    assert_equals "$(_zsh_ai_t3_effective_model)" "gpt-6-luna"
+
+    export ZSH_AI_T3_MODEL="custom-model"
+    assert_equals "$(_zsh_ai_t3_effective_model)" "custom-model"
+
+    export ZSH_AI_T3_PROVIDER="gemini"
+    export ZSH_AI_T3_MODEL=""
+    assert_equals "$(_zsh_ai_t3_effective_model)" "gemini-3.8-flash"
+
+    export ZSH_AI_T3_PROVIDER="unknownInstance"
+    assert_equals "$(_zsh_ai_t3_effective_model)" ""
+
+    teardown_t3_test
+}
+
 echo "Running T3 provider tests..."
 run_test "Claude runs one-off without tools" test_claude_runs_one_off_without_tools
 run_test "Uses T3 binary and home for Claude" test_uses_t3_binary_and_home_for_claude
 run_test "Codex runs ephemeral and read-only" test_codex_runs_ephemeral_read_only
 run_test "Gemini runs headless" test_gemini_runs_headless
+run_test "Gemini skips T3 settings" test_gemini_skips_t3_settings
 run_test "Maps provider aliases" test_maps_provider_aliases
 run_test "Uses custom instance driver from settings" test_uses_custom_instance_driver_from_settings
+run_test "Effective model resolves custom instance driver" test_effective_model_resolves_custom_instance_driver
 run_test "Uses configured model" test_uses_configured_model
 run_test "Rejects disabled instance" test_rejects_disabled_instance
 run_test "Rejects unsupported driver" test_rejects_unsupported_driver

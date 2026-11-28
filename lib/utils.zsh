@@ -80,7 +80,8 @@ zsh-ai() {
             echo "Mistral model: $ZSH_AI_MISTRAL_MODEL"
         elif [[ "$ZSH_AI_PROVIDER" == "t3" ]]; then
             echo "T3 provider: $ZSH_AI_T3_PROVIDER"
-            echo "T3 model: ${ZSH_AI_T3_MODEL:-$(_zsh_ai_t3_default_model "$(_zsh_ai_t3_instance_id "$ZSH_AI_T3_PROVIDER")")}"
+            local t3_model=$(_zsh_ai_t3_effective_model)
+            [[ -n "$t3_model" ]] && echo "T3 model: $t3_model"
         fi
         return 1
     fi

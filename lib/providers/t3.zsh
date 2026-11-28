@@ -70,6 +70,23 @@ _zsh_ai_t3_resolve_instance() {
     print -r -- "${driver}"$'\x1f'"${binary}"$'\x1f'"${home}"$'\x1f'"${enabled}"
 }
 
+# Resolve the effective model for ZSH_AI_T3_PROVIDER and ZSH_AI_T3_MODEL.
+_zsh_ai_t3_effective_model() {
+    if [[ -n "$ZSH_AI_T3_MODEL" ]]; then
+        print -r -- "$ZSH_AI_T3_MODEL"
+        return
+    fi
+
+    local instance=$(_zsh_ai_t3_instance_id "$ZSH_AI_T3_PROVIDER")
+    local driver="$instance"
+    if [[ "$instance" != "gemini" ]]; then
+        local resolved=$(_zsh_ai_t3_resolve_instance "$instance")
+        local binary home enabled
+        IFS=$'\x1f' read -r driver binary home enabled <<< "$resolved"
+    fi
+    _zsh_ai_t3_default_model "$driver"
+}
+
 # Clean a model reply: trim and strip a surrounding markdown fence or backticks.
 _zsh_ai_t3_clean_reply() {
     perl -MEncode=decode,encode -0777 -e '
@@ -144,9 +161,11 @@ _zsh_ai_query_t3() {
     local query="$1"
 
     local instance=$(_zsh_ai_t3_instance_id "$ZSH_AI_T3_PROVIDER")
-    local resolved=$(_zsh_ai_t3_resolve_instance "$instance")
-    local driver binary home enabled
-    IFS=$'\x1f' read -r driver binary home enabled <<< "$resolved"
+    local driver="$instance" binary="" home="" enabled=""
+    if [[ "$instance" != "gemini" ]]; then
+        local resolved=$(_zsh_ai_t3_resolve_instance "$instance")
+        IFS=$'\x1f' read -r driver binary home enabled <<< "$resolved"
+    fi
 
     if [[ "$enabled" == "disabled" ]]; then
         echo "Error: T3 provider '$instance' is disabled in T3 Code."
