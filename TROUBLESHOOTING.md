@@ -52,6 +52,19 @@ If Apfel reports a context-limit error or incomplete output, shorten the request
 or `ZSH_AI_PROMPT_EXTEND`. zsh-ai rejects incomplete output instead of offering
 it as a command.
 
+## T3 Code requests fail
+
+- `'claude' not found` or `'codex' not found`: install the CLI, or set its
+  binary path in T3 Code's provider settings.
+- `failed (exit 1). ... login`: sign the provider in from T3 Code, or run
+  `claude auth login` / `codex login`.
+- `is disabled in T3 Code`: enable the provider instance in T3 Code, or pick
+  another one with `ZSH_AI_T3_PROVIDER`.
+- Gemini asks for an auth method: run `gemini` once and sign in. T3's
+  Antigravity login isn't shared.
+- Model errors: check `ZSH_AI_T3_MODEL` against the models T3 lists for that
+  provider.
+
 ## The comment trigger doesn't work
 
 Use `# ` with a space, or the prefix you set in `ZSH_AI_TRIGGER`. Check that

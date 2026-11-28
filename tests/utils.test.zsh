@@ -9,6 +9,7 @@ source "$PLUGIN_DIR/lib/context.zsh"
 source "$PLUGIN_DIR/lib/providers/anthropic.zsh"
 source "$PLUGIN_DIR/lib/providers/ollama.zsh"
 source "$PLUGIN_DIR/lib/providers/apfel.zsh"
+source "$PLUGIN_DIR/lib/providers/t3.zsh"
 source "$PLUGIN_DIR/lib/utils.zsh"
 
 # Test functions
@@ -104,6 +105,23 @@ test_routes_to_apfel_provider() {
     teardown_test_env
 }
 
+test_routes_to_t3_provider() {
+    local saved_fn="${functions[_zsh_ai_query_t3]-}"
+    setup_test_env
+    export ZSH_AI_PROVIDER="t3"
+
+    _zsh_ai_query_t3() {
+        echo "t3:$1"
+    }
+
+    local output
+    output=$(_zsh_ai_query "test query")
+    assert_equals "$output" "t3:test query"
+
+    functions[_zsh_ai_query_t3]="$saved_fn"
+    teardown_test_env
+}
+
 test_checks_ollama_availability_before_querying() {
     setup_test_env
     export ZSH_AI_PROVIDER="ollama"
@@ -182,6 +200,43 @@ test_shows_apfel_setup_and_active_endpoint() {
     assert_contains "$output" "Apfel model: apple-foundationmodel"
     assert_contains "$output" "Apfel endpoint: http://127.0.0.1:11435/v1/chat/completions"
 
+    teardown_test_env
+}
+
+test_shows_t3_provider_and_resolved_model_in_usage() {
+    setup_test_env
+    local settings_file=$(mktemp)
+    print -r -- '{"providerInstances":{"codexWork":{"driver":"codex"},"gemini":{"driver":"antigravity","enabled":false}}}' >| "$settings_file"
+
+    export ZSH_AI_PROVIDER="t3"
+    export ZSH_AI_T3_SETTINGS="$settings_file"
+    export ZSH_AI_T3_PROVIDER="codexWork"
+    export ZSH_AI_T3_MODEL=""
+
+    local output result
+    output=$(zsh-ai)
+    result=$?
+    assert_equals "$result" "1"
+    assert_contains "$output" "T3 provider: codexWork"
+    assert_contains "$output" "T3 model: gpt-6-luna"
+
+    export ZSH_AI_T3_MODEL="gpt-6-pro"
+    output=$(zsh-ai)
+    assert_contains "$output" "T3 model: gpt-6-pro"
+
+    export ZSH_AI_T3_PROVIDER="gemini"
+    export ZSH_AI_T3_MODEL=""
+    output=$(zsh-ai)
+    assert_contains "$output" "T3 provider: gemini"
+    assert_contains "$output" "T3 model: gemini-3.8-flash"
+
+    export ZSH_AI_T3_PROVIDER="unknownInstance"
+    output=$(zsh-ai)
+    assert_contains "$output" "T3 provider: unknownInstance"
+    assert_not_contains "$output" "T3 model:"
+
+    rm -f "$settings_file"
+    unset ZSH_AI_T3_SETTINGS ZSH_AI_T3_PROVIDER ZSH_AI_T3_MODEL
     teardown_test_env
 }
 
@@ -583,12 +638,14 @@ echo "Running utils tests..."
 run_test "Routes to Anthropic provider when configured" test_routes_to_anthropic_provider
 run_test "Routes to Ollama provider when configured" test_routes_to_ollama_provider
 run_test "Routes to Apfel provider when configured" test_routes_to_apfel_provider
+run_test "Routes to T3 provider when configured" test_routes_to_t3_provider
 run_test "Routes to custom provider when configured" test_routes_to_custom_provider
 run_test "Throws an error when provider returns non-zero exit code" test_provider_non_zero_exit_code
 run_test "Checks Ollama availability before querying" test_checks_ollama_availability_before_querying
 run_test "Shows usage when called without arguments" test_shows_usage_without_arguments
 run_test "Shows Ollama model in usage for Ollama provider" test_shows_ollama_model_in_usage
 run_test "Shows Apfel setup and active endpoint in usage" test_shows_apfel_setup_and_active_endpoint
+run_test "Shows T3 provider and resolved model in usage" test_shows_t3_provider_and_resolved_model_in_usage
 run_test "Shows command without executing" test_shows_command_without_executing
 run_test "Puts command in buffer" test_puts_command_in_buffer
 run_test "Handles API errors in zsh-ai command" test_handles_api_errors_in_zsh_ai

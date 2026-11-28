@@ -41,6 +41,8 @@ _zsh_ai_query() {
         _zsh_ai_query_grok "$query"
     elif [[ "$ZSH_AI_PROVIDER" == "mistral" ]]; then
         _zsh_ai_query_mistral "$query"
+    elif [[ "$ZSH_AI_PROVIDER" == "t3" ]]; then
+        _zsh_ai_query_t3 "$query"
     elif [[ "$ZSH_AI_PROVIDER" == "custom" ]]; then
         _zsh_ai_query_custom "$query"
 	else
@@ -76,6 +78,10 @@ zsh-ai() {
             echo "Grok model: $ZSH_AI_GROK_MODEL"
         elif [[ "$ZSH_AI_PROVIDER" == "mistral" ]]; then
             echo "Mistral model: $ZSH_AI_MISTRAL_MODEL"
+        elif [[ "$ZSH_AI_PROVIDER" == "t3" ]]; then
+            echo "T3 provider: $ZSH_AI_T3_PROVIDER"
+            local t3_model=$(_zsh_ai_t3_effective_model)
+            [[ -n "$t3_model" ]] && echo "T3 model: $t3_model"
         fi
         return 1
     fi

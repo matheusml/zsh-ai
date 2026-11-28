@@ -64,6 +64,7 @@ export OPENAI_API_KEY="your-key-here"
 | `qwen` | `QWEN_API_KEY` | `qwen3.8-flash` |
 | `ollama` | None | `llama3.2` |
 | `apfel` | None | `apple-foundationmodel` |
+| `t3` | None (uses T3 Code's provider logins) | `claude-haiku-5-5` via `claudeAgent` |
 
 ### Apfel
 
@@ -98,6 +99,39 @@ export ZSH_AI_APFEL_URL="http://127.0.0.1:11435/v1/chat/completions"
 ```
 
 zsh-ai does not use API keys or a hosted fallback for Apfel.
+
+### T3 Code
+
+The `t3` provider reuses the agent CLIs that T3 Code manages, with the same
+logins, so zsh-ai needs no API key. It reads T3's `settings.json` for each
+provider instance's binary path and config directory, then runs that CLI once
+with tools off and no saved session. Nothing shows up in T3 Code.
+
+Sign the provider in from T3 Code's provider settings (or with `claude auth
+login` / `codex login`), then set this before the plugin loads:
+
+```zsh
+export ZSH_AI_PROVIDER="t3"
+export ZSH_AI_T3_PROVIDER="anthropic"   # or codex, gemini
+```
+
+| `ZSH_AI_T3_PROVIDER` | Runs | T3 settings used | Default model |
+| --- | --- | --- | --- |
+| `anthropic`, `claude`, `claudeAgent` (default) | `claude -p` | binary path, `CLAUDE_CONFIG_DIR` | `claude-haiku-5-5` |
+| `codex`, `openai` | `codex exec --ephemeral` (read-only sandbox) | binary path, `CODEX_HOME` | `gpt-6-luna` |
+| `gemini`, `google` | `gemini -p` | none | `gemini-3.8-flash` |
+
+Any other value is looked up as a T3 provider instance id, so a second account
+such as `claudeWork` or `codexWork` with its own home path works too. Only the
+Claude and Codex drivers are supported there.
+
+T3 Code runs Gemini through Antigravity, whose login can't be shared, so the
+`gemini` option uses the Gemini CLI with its own login. Run `gemini` once and
+sign in first.
+
+Set `ZSH_AI_T3_MODEL` to pick a model. `ZSH_AI_T3_SETTINGS` overrides the
+settings path, which defaults to `${T3CODE_HOME:-~/.t3}/userdata/settings.json`.
+Without the file, zsh-ai uses `claude`, `codex`, or `gemini` from `PATH`.
 
 ### Ollama
 

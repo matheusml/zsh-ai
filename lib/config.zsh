@@ -21,6 +21,9 @@
 : ${ZSH_AI_GROK_URL:="https://api.x.ai/v1/chat/completions"}  # Default Grok URL
 : ${ZSH_AI_MISTRAL_MODEL:="mistral-small-latest"}  # Default Mistral model
 : ${ZSH_AI_MISTRAL_URL:="https://api.mistral.ai/v1/chat/completions"}  # Default Mistral URL
+: ${ZSH_AI_T3_PROVIDER:="claudeAgent"}  # T3 provider instance: claudeAgent/anthropic, codex/openai, gemini, or any T3 instance id
+: ${ZSH_AI_T3_MODEL:=""}  # Empty picks a fast default for the provider
+# ZSH_AI_T3_SETTINGS - optional path to T3's settings.json (default: ${T3CODE_HOME:-~/.t3}/userdata/settings.json)
 
 # Inline trigger configuration
 : ${ZSH_AI_COMMENT_HOOK:="true"}  # Set to false/off/no/0 to disable the inline trigger widget entirely
@@ -40,8 +43,8 @@ _zsh_ai_comment_hook_enabled() {
 
 # Provider validation
 _zsh_ai_validate_config() {
-    if [[ "$ZSH_AI_PROVIDER" != "anthropic" ]] && [[ "$ZSH_AI_PROVIDER" != "ollama" ]] && [[ "$ZSH_AI_PROVIDER" != "apfel" ]] && [[ "$ZSH_AI_PROVIDER" != "gemini" ]] && [[ "$ZSH_AI_PROVIDER" != "qwen" ]] && [[ "$ZSH_AI_PROVIDER" != "openai" ]] && [[ "$ZSH_AI_PROVIDER" != "grok" ]] && [[ "$ZSH_AI_PROVIDER" != "mistral" ]] && [[ "$ZSH_AI_PROVIDER" != "custom" ]]; then
-        echo "zsh-ai: Error: Invalid provider '$ZSH_AI_PROVIDER'. Use 'anthropic', 'ollama', 'apfel', 'gemini', 'openai', 'qwen', 'grok', 'mistral', or 'custom'."
+    if [[ "$ZSH_AI_PROVIDER" != "anthropic" ]] && [[ "$ZSH_AI_PROVIDER" != "ollama" ]] && [[ "$ZSH_AI_PROVIDER" != "apfel" ]] && [[ "$ZSH_AI_PROVIDER" != "gemini" ]] && [[ "$ZSH_AI_PROVIDER" != "qwen" ]] && [[ "$ZSH_AI_PROVIDER" != "openai" ]] && [[ "$ZSH_AI_PROVIDER" != "grok" ]] && [[ "$ZSH_AI_PROVIDER" != "mistral" ]] && [[ "$ZSH_AI_PROVIDER" != "t3" ]] && [[ "$ZSH_AI_PROVIDER" != "custom" ]]; then
+        echo "zsh-ai: Error: Invalid provider '$ZSH_AI_PROVIDER'. Use 'anthropic', 'ollama', 'apfel', 'gemini', 'openai', 'qwen', 'grok', 'mistral', 't3', or 'custom'."
         return 1
     fi
 
@@ -93,6 +96,11 @@ _zsh_ai_validate_config() {
         if [[ -z "$MISTRAL_API_KEY" ]]; then
             echo "zsh-ai: Warning: MISTRAL_API_KEY not set. Plugin will not function."
             echo "zsh-ai: Set MISTRAL_API_KEY or use ZSH_AI_PROVIDER=ollama for local models."
+            return 1
+        fi
+    elif [[ "$ZSH_AI_PROVIDER" == "t3" ]]; then
+        if [[ -z "$ZSH_AI_T3_PROVIDER" ]]; then
+            echo "zsh-ai: Error: ZSH_AI_T3_PROVIDER must name a T3 provider (claudeAgent, codex, gemini, ...)."
             return 1
         fi
     elif [[ "$ZSH_AI_PROVIDER" == "custom" ]]; then
